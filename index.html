@@ -62,7 +62,12 @@ label{display:block;color:var(--sub);font-size:12px;margin:10px 0 4px}
 body.ro .rw{display:none!important}
 .st{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:4px}.st i{width:8px;height:8px;border-radius:50%;background:var(--sub);display:inline-block}.st.on i{background:var(--ok)}.st.off i{background:#e6b23a}.st.err i{background:var(--bad)}
 .note{color:var(--sub);font-size:13px;line-height:1.5}
-.tl{margin-bottom:14px}.tl-h{font-weight:700;font-size:13px;margin-bottom:6px;color:var(--ice)}.tl-h small{color:var(--sub);font-weight:400}
+.tl{margin-bottom:10px;background:rgba(0,0,0,.18);border:1px solid var(--line);border-left:4px solid var(--mc);border-radius:10px;padding:10px 12px}
+.tl-h{font-weight:800;font-size:14px;margin-bottom:8px;color:var(--mc);display:flex;align-items:center;gap:6px}.tl-h .ic{font-size:16px}
+.mk-top{--mc:#ffc23d}.mk-first{--mc:#5cc8ff}.mk-res{--mc:#c792ff}
+.tl .bar i{background:var(--mc)}.tl .bar.ok i{background:var(--ok)}
+.tl label{margin-top:0}
+.tl .seg{background:rgba(0,0,0,.25)}.tl .seg button.on{background:var(--mc);color:#14081f}.tl-h small{color:var(--sub);font-weight:400}
 .tl-r{margin-bottom:8px}.tl-l{display:flex;justify-content:space-between;font-size:14px}.tl-n{font-size:11px;color:var(--sub);margin-top:2px}
 .bar{height:8px;background:var(--card2);border-radius:4px;overflow:hidden;margin-top:3px}.bar i{display:block;height:100%;background:var(--acc);border-radius:4px}.bar.ok i{background:var(--ok)}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:20px;z-index:30;font-size:13px}
@@ -209,6 +214,7 @@ function vRoster(){
 }
 /* ---------- 예측(배팅) ---------- */
 const MK=[['top','최다 득점자'],['first','첫 골 주인공'],['res','경기 결과']];
+const MKI={top:'👑',first:'⚡',res:'⚔️'};
 const RES={W:'승',D:'무',L:'패'};
 const ours=m=>m.home===US||m.away===US;
 const closeAt=m=>new Date((m.date||'2000-01-01')+'T00:00:00+09:00');      // 경기 당일 0시(한국시간) 마감
@@ -242,7 +248,7 @@ function tallyHTML(m){
   const ans=m.done?answers(m):null,showNames=isAdmin()||m.done;   // 투표자 이름: 관리자는 항상, 팀원은 경기 종료 후에만
   return MK.map(([k,l])=>{
     const t=tally(m,k),tot=t.reduce((s,x)=>s+x[1],0);
-    return `<div class="tl"><div class="tl-h">${l}${ans?` <small>· 정답 ${ans[k].length?ans[k].map(v=>esc(pickTxt(k,v))).join(', '):'없음'}</small>`:''}<small style="float:right">${tot}표</small></div>
+    return `<div class="tl mk-${k}"><div class="tl-h"><span class="ic">${MKI[k]}</span>${l}${ans?` <small>· 정답 ${ans[k].length?ans[k].map(v=>esc(pickTxt(k,v))).join(', '):'없음'}</small>`:''}<small style="margin-left:auto">${tot}표</small></div>
     ${t.length?t.map(([v,n,ns])=>{const ok=ans&&ans[k].includes(v);return `<div class="tl-r"><div class="tl-l"><span>${ok?'✅ ':''}${esc(pickTxt(k,v))}</span><b>${n}표</b></div><div class="bar${ok?' ok':''}"><i style="width:${Math.round(n/tot*100)}%"></i></div>${showNames?`<div class="tl-n">${ns.map(esc).join(', ')}</div>`:''}</div>`}).join(''):'<div class="note">아직 투표가 없습니다.</div>'}</div>`;
   }).join('');
 }
@@ -258,8 +264,8 @@ function vBets(){
   const opp=m=>esc(m.home===US?m.away:m.home);
   const block=(m,state)=>{const mine=myBet(m);
     return `<div class="card"><div class="row" style="align-items:flex-start"><div style="flex:3"><h2 style="margin:0">vs ${opp(m)}</h2><div class="note">${fds(m.date)} 경기 · ${state==='open'?dlTxt(m):'투표 마감 · 결과 대기'}</div></div>
-      ${state==='open'?(mine?`<span class="tag w" style="flex:0 0 auto">✔ 투표 완료</span>`:`<button class="b sm" style="flex:0 0 auto" data-a="openBet" data-id="${m.id}">투표하기</button>`):''}</div>
-      ${mine?`<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">${MK.filter(([k])=>mine[k]).map(([k,l])=>`<span class="tag">내 ${l}: ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div>`:''}
+      ${state==='open'?(isAdmin()?`<span class="tag" style="flex:0 0 auto">관리자 · 투표 불가</span>`:mine?`<span class="tag w" style="flex:0 0 auto">✔ 투표 완료</span>`:`<button class="b sm" style="flex:0 0 auto" data-a="openBet" data-id="${m.id}">투표하기</button>`):''}</div>
+      ${mine&&!isAdmin()?`<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">${MK.filter(([k])=>mine[k]).map(([k,l])=>`<span class="tag">${MKI[k]} ${l}: ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div>`:''}
       ${votersLine(m)}
       <div class="mt">${tallyHTML(m)}</div>
       ${isAdmin()?`<div class="row mt"><button class="g sm" data-a="openBet" data-id="${m.id}">관리 (투표 초기화)</button></div>`:''}</div>`};
@@ -275,16 +281,16 @@ function vBetSheet(m){
   const sel=k=>k==='res'
     ?`<div class="seg" style="margin:6px 0 0">${[['','안 함'],['W','승'],['D','무'],['L','패']].map(([v,l])=>`<button class="${v===''?'on':''}" data-a="pickRes" data-v="${v}">${l}</button>`).join('')}</div><input type="hidden" id="bres" value="">`
     :`<select id="b${k}"><option value="">선택 안 함</option>${pl.map(p=>`<option value="${p.id}">#${p.no} ${esc(p.name)}</option>`).join('')}</select>`;
-  const form=open&&!mine;
+  const form=open&&!mine&&!isAdmin();
   return `<div class="sheet" data-a="closeSheet"><div>
     <div class="row"><h2 style="margin:0;flex:3">🎯 ${esc(m.home)} vs ${esc(m.away)}</h2><button class="g sm" data-a="closeSheet" style="flex:0 0 auto">닫기</button></div>
     <div class="note" style="margin:4px 0 10px">${fds(m.date)} · ${m.done?`경기 종료 ${score(m).h}:${score(m).a}`:open?dlTxt(m):'투표 마감 · 결과 대기'}</div>
     ${form?`${me?`<div class="note">투표자: <b style="color:var(--tx)">${esc(me)}</b></div>`:`<label>내 이름</label><select id="bname"><option value="">이름을 선택하세요</option>${pl.map(p=>`<option>${esc(p.name)}</option>`).join('')}</select>`}
-      ${MK.map(([k,l])=>`<label>${l}</label>${sel(k)}`).join('')}
+      ${MK.map(([k,l])=>`<div class="tl mk-${k}"><div class="tl-h"><span class="ic">${MKI[k]}</span>${l}</div>${sel(k)}</div>`).join('')}
       <div class="note mt" style="color:var(--acc)">⚠️ 한 번 투표하면 수정할 수 없어요. 신중하게 골라주세요.</div>
       <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="saveBet">투표하기</button></div>
       <h2 class="mt" style="margin-top:18px">📊 현재 집계</h2>${votersLine(m)}<div class="mt">${tallyHTML(m)}</div>`
-    :`${mine?`<div class="card"><h2>내 투표 ${open?'<small style="color:var(--sub);font-weight:400">· 수정 불가</small>':''}</h2><div style="display:flex;gap:4px;flex-wrap:wrap">${MK.map(([k,l])=>`<span class="tag">${l}: ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div></div>`:''}
+    :`${mine&&!isAdmin()?`<div class="card"><h2>내 투표 ${open?'<small style="color:var(--sub);font-weight:400">· 수정 불가</small>':''}</h2><div style="display:flex;gap:4px;flex-wrap:wrap">${MK.map(([k,l])=>`<span class="tag">${l}: ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div></div>`:''}
       <h2>📊 집계</h2>${votersLine(m)}<div class="mt">${tallyHTML(m)}</div>
       ${m.done&&Object.keys(st).length?`<div class="card mt"><h2>이 경기 포인트</h2><table>${Object.entries(st).sort((a,b)=>b[1].pts-a[1].pts).map(([n,o])=>`<tr><td class="l">${esc(n)}</td><td>${o.hit}/${o.try} 적중</td><td><b>+${o.pts}</b></td></tr>`).join('')}</table></div>`:''}`}
     ${isAdmin()&&bs.length?`<div class="card mt"><h2>관리자 · 투표 초기화</h2><div class="note">잘못 투표한 팀원의 투표를 지우면 그 사람이 다시 투표할 수 있어요.</div>${bs.map(b=>`<div class="ev"><span>${esc(b.n)}</span><button class="d sm" data-a="resetBet" data-n="${esc(b.n)}">초기화</button></div>`).join('')}</div>`:''}
@@ -314,7 +320,7 @@ function vSheet(){
       <div class="row"><h2 style="margin:0;flex:3">${esc(m.home)} vs ${esc(m.away)}</h2><button class="g sm" data-a="closeSheet" style="flex:0 0 auto">닫기</button></div>
       <div style="color:var(--sub);font-size:13px;margin:4px 0 8px">${fds(m.date)} ${m.done?'· 경기 종료':'· 진행/예정'}</div>
       <div class="big"><span>${s.h}</span><span style="color:var(--sub)">:</span><span>${s.a}</span></div>
-      ${mine?`<div class="row" style="margin-bottom:10px"><button class="g" data-a="openBet" data-id="${m.id}">🎯 예측 ${isOpen(m)?'하기':'보기'} (${betsOf(m).length}명 참여)</button></div>`:''}
+      ${mine?`<div class="row" style="margin-bottom:10px"><button class="g" data-a="openBet" data-id="${m.id}">🎯 예측 ${isOpen(m)&&!isAdmin()?'하기':'보기'} (${betsOf(m).length}명 참여)</button></div>`:''}
       ${mine?`
         <div class="card"><h2>${US} 득점 기록</h2>
         ${(m.ev||[]).length?m.ev.map((e,i)=>`<div class="ev"><span>🥅 <b>${esc(pn(e.s))}</b>${e.a?` <small style="color:var(--sub)">어시 ${esc(pn(e.a))}</small>`:''}${e.min?` <small style="color:var(--sub)">· ${esc(e.min)}'</small>`:''}</span><button class="d sm rw" data-a="delEv" data-i="${i}">삭제</button></div>`).join(''):'<div class="empty" style="padding:10px">기록된 골이 없습니다.</div>'}
@@ -451,6 +457,7 @@ const A={
   pickRes(d){document.getElementById('bres').value=d.v;document.querySelectorAll('[data-a=pickRes]').forEach(x=>x.classList.toggle('on',x.dataset.v===d.v));return 'keep'},
   saveBet(){
     const m=S.matches.find(x=>x.id===sheet.id);if(!m)return;
+    if(isAdmin()){toast('관리자는 투표할 수 없습니다');return}
     if(!isOpen(m)){toast('예측이 마감됐습니다');return}
     let n=getMe();
     if(!n){n=(document.getElementById('bname')||{}).value||'';if(!n){toast('이름을 선택하세요');return}try{localStorage.setItem(ME_KEY,n)}catch(e){}}
