@@ -86,14 +86,14 @@ const valid=s=>s&&Array.isArray(s.players)&&Array.isArray(s.matches)&&Array.isAr
 function loadCache(){try{const s=JSON.parse(localStorage.getItem(CACHE_KEY));if(valid(s)){loaded=true;return s}}catch(e){}return defaults()}
 function legacy(){try{const s=JSON.parse(localStorage.getItem(KEY));if(valid(s)&&!localStorage.getItem(KEY+'_moved'))return s}catch(e){}return null}
 const getMe=()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return''}};
-let S=loadCache(), tab='standings', sub='goals', sheet=null, dip=null;
+let S=loadCache(), LOCAL0=JSON.parse(JSON.stringify(S)), serverEmpty=false, tab='standings', sub='goals', sheet=null, dip=null;
 const isAdmin=()=>!!user&&user.email!==TEAM_EMAIL;
 const canEdit=isAdmin;
 
 function save(){
   try{localStorage.setItem(CACHE_KEY,JSON.stringify(S))}catch(e){}
   if(!fb||!isAdmin()){toast('관리자 로그인이 필요합니다');return}
-  const err=e=>{console.error(e);toast('저장 실패: '+(e.code||'네트워크 확인'))};
+  const err=e=>{console.error(e);if((e.code||'').includes('permission')){sync='denied';render();alert('⚠️ 서버에 저장되지 않았습니다 (권한 없음)\n\nFirestore 규칙의 관리자 이메일이 지금 로그인한 이메일('+(user&&user.email)+')과 똑같은지 확인하세요.')}else toast('저장 실패: '+(e.code||'네트워크 확인'))};
   fb.setDoc(ref,JSON.parse(JSON.stringify(S))).catch(err);
   fb.setDoc(pubRef,{players:S.players.map(p=>({no:p.no,name:p.name}))}).catch(err); // 로그인 화면용 명단(이름·번호만)
 }
@@ -109,13 +109,15 @@ function subscribe(F){
   },err=>console.error(err));
   unsub=F.onSnapshot(ref,{includeMetadataChanges:true},snap=>{
     if(snap.exists()&&valid(snap.data()))S=snap.data();
-    else if(!snap.metadata.fromCache&&!loaded)S=defaults();
+    else if(!snap.metadata.fromCache)S=defaults();
+    if(!snap.metadata.fromCache)serverEmpty=!snap.exists();          // 서버에 문서가 없으면 서버 상태 그대로 표시
     loaded=true;
+    if(sync==='denied'&&!snap.metadata.hasPendingWrites){render();return}
     sync=snap.metadata.hasPendingWrites?'pending':snap.metadata.fromCache?'offline':'live';
     try{localStorage.setItem(CACHE_KEY,JSON.stringify(S))}catch(e){}
     if(sheet&&document.activeElement&&/INPUT|SELECT/.test(document.activeElement.tagName))renderStatus();
     else render();
-  },err=>{console.error(err);sync='error';loaded=true;render()});
+  },err=>{console.error(err);sync='error';loaded=true;render();setTimeout(()=>{if(user&&sync==='error')subscribe(F)},15000)});
 }
 async function initFirebase(){
   try{
@@ -131,7 +133,7 @@ async function initFirebase(){
   }catch(e){console.error(e);sync='error';authReady=true;render()}
 }
 function renderStatus(){
-  const m={connecting:['','연결 중'],live:['on','실시간'],pending:['off','저장 중'],offline:['off','오프라인'],error:['err','연결 오류']}[sync];
+  const m={connecting:['','연결 중'],live:['on','실시간'],pending:['off','저장 중'],offline:['off','오프라인'],error:['err','연결 오류'],denied:['err','저장 권한 없음']}[sync];
   const st=document.getElementById('st');st.className='st '+m[0];st.lastChild.textContent=m[1];st.style.display=user?'':'none';
   const lb=document.getElementById('lb');lb.style.display=user?'':'none';
   lb.textContent=isAdmin()?'✏️ 관리자':(getMe()||'팀원');lb.className=isAdmin()?'b sm':'g sm';
@@ -270,6 +272,7 @@ function vMore(){
   ${S.teams.map(t=>`<div class="ev"><span>${esc(t)}${t===US?' <span class="tag">우리팀</span>':''}</span>${t===US?'':`<button class="d sm rw" data-a="delTeam" data-t="${esc(t)}">삭제</button>`}</div>`).join('')}
   <div class="row mt rw"><button class="b" data-a="addTeam">＋ 팀 추가</button></div></div>
   <div class="card"><h2>내 계정</h2>${isAdmin()?`<div class="note">✏️ 관리자로 로그인됨 (${esc(user.email)})<br>입력한 기록이 모든 팀원 폰에 실시간으로 반영됩니다.</div>`:`<div class="note">👤 ${esc(getMe()||'팀원')} — 보기 전용<br>기록 입력·수정은 관리자만 할 수 있습니다.</div>`}<div class="row mt"><button class="g" data-a="logout">로그아웃</button></div></div>
+  ${isAdmin()&&serverEmpty&&LOCAL0.matches.length?`<div class="card" style="border-color:var(--acc)"><h2>⚠️ 서버에 저장되지 않은 기록</h2><div class="note">이 폰에만 남아 있는 기록이 있습니다 (팀 ${LOCAL0.teams.length}개 · 경기 ${LOCAL0.matches.length}개). 서버에 올려야 팀원 폰에도 보입니다.</div><div class="row mt"><button class="b" data-a="uploadLocal">서버에 올리기</button></div></div>`:''}
   ${isAdmin()&&legacy()?`<div class="card"><h2>이 폰의 이전 기록</h2><div class="note">공유 기능 이전에 이 폰에만 저장된 기록(경기 ${legacy().matches.length}개)이 있습니다. 공용 기록으로 올리면 현재 공용 기록을 덮어씁니다.</div><div class="row mt"><button class="b" data-a="migrate">공용 기록으로 올리기</button><button class="g" data-a="dropLegacy">무시</button></div></div>`:''}
   <div class="card"><h2>데이터 백업</h2><div class="note">기록은 공용 서버(Firebase)에 저장됩니다. 만일을 위해 시즌 중간중간 백업 파일을 받아두세요.</div>
   <div class="row mt"><button class="g" data-a="export">백업 받기</button><button class="g rw" data-a="import">백업 불러오기</button></div>
@@ -419,6 +422,7 @@ const A={
   },
   logout(){if(fb&&confirm('로그아웃할까요?')){fb.signOut(fb.auth);sheet=null;tab='standings'}},
   migrate(){const s=legacy();if(s&&confirm(`이 폰의 이전 기록(경기 ${s.matches.length}개)으로 공용 기록을 덮어씁니다.`)){S=s;save();localStorage.setItem(KEY+'_moved','1');toast('공용 기록으로 올렸습니다')}},
+  uploadLocal(){if(confirm(`이 폰의 기록(경기 ${LOCAL0.matches.length}개)을 서버에 올립니다.`)){S=JSON.parse(JSON.stringify(LOCAL0));serverEmpty=false;save();toast('서버에 올렸습니다')}},
   dropLegacy(){localStorage.setItem(KEY+'_moved','1')},
   openBet(d){sheet={type:'bet',id:d.id}},
   pickRes(d){document.getElementById('bres').value=d.v;document.querySelectorAll('[data-a=pickRes]').forEach(x=>x.classList.toggle('on',x.dataset.v===d.v));return 'keep'},
@@ -442,7 +446,7 @@ function doLogin(em,pw,ok){
 }
 function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('복사됨 — 단톡방에 붙여넣기')).catch(()=>{prompt('복사해서 사용하세요',t)})}
 
-const MUT=new Set(['newMatch','saveMatch','addEv','delEv','step','toggleDone','delMatch','addPlayer','editPlayer','savePlayer','delPlayer','addTeam','delTeam','import','reset','migrate']);
+const MUT=new Set(['uploadLocal','newMatch','saveMatch','addEv','delEv','step','toggleDone','delMatch','addPlayer','editPlayer','savePlayer','delPlayer','addTeam','delTeam','import','reset','migrate']);
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-a]');if(!el)return;
   if(el.classList.contains('sheet')&&e.target!==el)return;
