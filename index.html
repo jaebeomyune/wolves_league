@@ -66,7 +66,7 @@ body.ro .rw{display:none!important}
 </style>
 </head>
 <body>
-<header><h1>🏒 울브스 <small>대경리그</small></h1><span class="st" id="st"><i></i><span>연결 중</span></span><button class="g sm" data-a="loginBtn" id="lb">기록원</button><button class="g sm" data-a="install" id="ib" style="display:none">앱 설치</button></header>
+<header><h1>🏒 울브스 <small>대경리그</small></h1><span class="st" id="st"><i></i><span>연결 중</span></span><button class="g sm" data-a="loginBtn" id="lb" style="display:none"></button><button class="g sm" data-a="install" id="ib" style="display:none">앱 설치</button></header>
 <main id="app"></main>
 <nav id="nav"></nav>
 <script type="module">
@@ -76,24 +76,41 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 /* ---------- Firebase 공유 저장소 ---------- */
 const FB_CONFIG={apiKey:"AIzaSyCaZ2XVZztkgnqly98ua3ul9Utoy26iD3o",authDomain:"wolves-league.firebaseapp.com",projectId:"wolves-league",storageBucket:"wolves-league.firebasestorage.app",messagingSenderId:"969420091528",appId:"1:969420091528:web:8b2335c89923170d8eaf3d"};
-const RECORDER_EMAIL='recorder@wolves-league.app';   // Firebase Authentication에 등록할 기록원 계정
-const CACHE_KEY='wolves_league_cache';               // 공용 데이터의 폰 내 사본(오프라인용)
+const TEAM_EMAIL='team@wolves-league.app';   // 팀원 공용 계정 (비밀번호 = 팀 비밀번호)
+const CACHE_KEY='wolves_league_cache', ME_KEY='wolves_me';
 const FBV='10.12.2';
-let fb=null, ref=null, user=null, sync='connecting', loaded=false;
+let fb=null, ref=null, pubRef=null, user=null, authReady=false, sync='connecting', loaded=false, unsub=null, pubRoster=null, adminMode=false, draftName='', draftEmail='';
 
 const defaults=()=>({teams:[US],players:ROSTER.map(([no,name])=>({id:uid(),no,name})),matches:[]});
 const valid=s=>s&&Array.isArray(s.players)&&Array.isArray(s.matches)&&Array.isArray(s.teams);
 function loadCache(){try{const s=JSON.parse(localStorage.getItem(CACHE_KEY));if(valid(s)){loaded=true;return s}}catch(e){}return defaults()}
 function legacy(){try{const s=JSON.parse(localStorage.getItem(KEY));if(valid(s)&&!localStorage.getItem(KEY+'_moved'))return s}catch(e){}return null}
+const getMe=()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return''}};
 let S=loadCache(), tab='standings', sub='goals', sheet=null, dip=null;
-const canEdit=()=>!!user;
+const isAdmin=()=>!!user&&user.email!==TEAM_EMAIL;
+const canEdit=isAdmin;
 
 function save(){
   try{localStorage.setItem(CACHE_KEY,JSON.stringify(S))}catch(e){}
-  if(!fb||!user){toast('기록원 로그인이 필요합니다');return}
-  fb.setDoc(ref,JSON.parse(JSON.stringify(S))).catch(e=>{console.error(e);toast('저장 실패: '+(e.code||'네트워크 확인'))});
+  if(!fb||!isAdmin()){toast('관리자 로그인이 필요합니다');return}
+  const err=e=>{console.error(e);toast('저장 실패: '+(e.code||'네트워크 확인'))};
+  fb.setDoc(ref,JSON.parse(JSON.stringify(S))).catch(err);
+  fb.setDoc(pubRef,{players:S.players.map(p=>({no:p.no,name:p.name}))}).catch(err); // 로그인 화면용 명단(이름·번호만)
 }
 
+function subscribe(F){
+  if(unsub){unsub();unsub=null}
+  if(!user)return;
+  unsub=F.onSnapshot(ref,{includeMetadataChanges:true},snap=>{
+    if(snap.exists()&&valid(snap.data()))S=snap.data();
+    else if(!snap.metadata.fromCache&&!loaded)S=defaults();
+    loaded=true;
+    sync=snap.metadata.hasPendingWrites?'pending':snap.metadata.fromCache?'offline':'live';
+    try{localStorage.setItem(CACHE_KEY,JSON.stringify(S))}catch(e){}
+    if(sheet&&document.activeElement&&/INPUT|SELECT/.test(document.activeElement.tagName))renderStatus();
+    else render();
+  },err=>{console.error(err);sync='error';loaded=true;render()});
+}
 async function initFirebase(){
   try{
     const base=`https://www.gstatic.com/firebasejs/${FBV}/`;
@@ -102,23 +119,16 @@ async function initFirebase(){
     let db;try{db=F.initializeFirestore(app,{localCache:F.persistentLocalCache()})}catch(e){db=F.getFirestore(app)}
     const auth=U.getAuth(app);
     fb={setDoc:F.setDoc,auth,signIn:U.signInWithEmailAndPassword,signOut:U.signOut};
-    ref=F.doc(db,'league','main');
-    U.onAuthStateChanged(auth,u=>{user=u;render()});
-    F.onSnapshot(ref,{includeMetadataChanges:true},snap=>{
-      if(snap.exists()&&valid(snap.data()))S=snap.data();
-      else if(!snap.metadata.fromCache&&!loaded)S=defaults();
-      loaded=true;
-      sync=snap.metadata.hasPendingWrites?'pending':snap.metadata.fromCache?'offline':'live';
-      try{localStorage.setItem(CACHE_KEY,JSON.stringify(S))}catch(e){}
-      if(sheet&&sheet.type!=='login'&&document.activeElement&&/INPUT|SELECT/.test(document.activeElement.tagName))renderStatus();
-      else render();
-    },err=>{console.error(err);sync='error';loaded=true;render()});
-  }catch(e){console.error(e);sync='error';loaded=true;render()}
+    ref=F.doc(db,'league','main');pubRef=F.doc(db,'public','roster');
+    F.onSnapshot(pubRef,snap=>{const d=snap.exists()&&snap.data();if(d&&Array.isArray(d.players)&&d.players.length){pubRoster=d.players;if(!user)render()}},()=>{});
+    U.onAuthStateChanged(auth,u=>{user=u;authReady=true;if(!u){sync='connecting'}subscribe(F);render()});
+  }catch(e){console.error(e);sync='error';authReady=true;render()}
 }
 function renderStatus(){
   const m={connecting:['','연결 중'],live:['on','실시간'],pending:['off','저장 중'],offline:['off','오프라인'],error:['err','연결 오류']}[sync];
-  const st=document.getElementById('st');st.className='st '+m[0];st.lastChild.textContent=m[1];
-  const lb=document.getElementById('lb');lb.textContent=user?'✏️ 기록원':'기록원';lb.className=user?'b sm':'g sm';
+  const st=document.getElementById('st');st.className='st '+m[0];st.lastChild.textContent=m[1];st.style.display=user?'':'none';
+  const lb=document.getElementById('lb');lb.style.display=user?'':'none';
+  lb.textContent=isAdmin()?'✏️ 관리자':(getMe()||'팀원');lb.className=isAdmin()?'b sm':'g sm';
   document.body.classList.toggle('ro',!canEdit());
 }
 function toast(t){document.querySelectorAll('.toast').forEach(x=>x.remove());const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
@@ -190,8 +200,8 @@ function vMore(){
   return `<div class="card"><h2>대경리그 참가팀</h2>
   ${S.teams.map(t=>`<div class="ev"><span>${esc(t)}${t===US?' <span class="tag">우리팀</span>':''}</span>${t===US?'':`<button class="d sm rw" data-a="delTeam" data-t="${esc(t)}">삭제</button>`}</div>`).join('')}
   <div class="row mt rw"><button class="b" data-a="addTeam">＋ 팀 추가</button></div></div>
-  <div class="card"><h2>기록원</h2>${user?`<div class="note">✏️ 기록원으로 로그인됨 — 입력한 기록이 모든 팀원 폰에 실시간으로 반영됩니다.</div><div class="row mt"><button class="g" data-a="logout">로그아웃</button></div>`:`<div class="note">팀원은 보기만 가능합니다. 기록 입력·수정은 기록원 비밀번호로 로그인해야 합니다.</div><div class="row mt"><button class="b" data-a="loginBtn">기록원 로그인</button></div>`}</div>
-  ${user&&legacy()?`<div class="card"><h2>이 폰의 이전 기록</h2><div class="note">공유 기능 이전에 이 폰에만 저장된 기록(경기 ${legacy().matches.length}개)이 있습니다. 공용 기록으로 올리면 현재 공용 기록을 덮어씁니다.</div><div class="row mt"><button class="b" data-a="migrate">공용 기록으로 올리기</button><button class="g" data-a="dropLegacy">무시</button></div></div>`:''}
+  <div class="card"><h2>내 계정</h2>${isAdmin()?`<div class="note">✏️ 관리자로 로그인됨 (${esc(user.email)})<br>입력한 기록이 모든 팀원 폰에 실시간으로 반영됩니다.</div>`:`<div class="note">👤 ${esc(getMe()||'팀원')} — 보기 전용<br>기록 입력·수정은 관리자만 할 수 있습니다.</div>`}<div class="row mt"><button class="g" data-a="logout">로그아웃</button></div></div>
+  ${isAdmin()&&legacy()?`<div class="card"><h2>이 폰의 이전 기록</h2><div class="note">공유 기능 이전에 이 폰에만 저장된 기록(경기 ${legacy().matches.length}개)이 있습니다. 공용 기록으로 올리면 현재 공용 기록을 덮어씁니다.</div><div class="row mt"><button class="b" data-a="migrate">공용 기록으로 올리기</button><button class="g" data-a="dropLegacy">무시</button></div></div>`:''}
   <div class="card"><h2>데이터 백업</h2><div class="note">기록은 공용 서버(Firebase)에 저장됩니다. 만일을 위해 시즌 중간중간 백업 파일을 받아두세요.</div>
   <div class="row mt"><button class="g" data-a="export">백업 받기</button><button class="g rw" data-a="import">백업 불러오기</button></div>
   <input type="file" id="file" accept=".json,application/json" style="display:none"></div>
@@ -236,18 +246,32 @@ function vSheet(){
       <label>이름</label><input id="pm" value="${p?esc(p.name):''}">
       <div class="row mt">${p?'<button class="d" data-a="delPlayer">삭제</button>':''}<button class="g" data-a="closeSheet">취소</button><button class="b" data-a="savePlayer">저장</button></div></div></div>`;
   }
-  if(sheet.type==='login'){
-    return `<div class="sheet" data-a="closeSheet"><div><h2>기록원 로그인</h2>
-      <div class="note">기록원 비밀번호를 입력하세요. 한 번 로그인하면 이 폰에서는 로그인이 유지됩니다.</div>
-      <label>비밀번호</label><input id="pw" type="password" autocomplete="current-password">
-      <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="login">로그인</button></div></div></div>`;
-  }
   return '';
 }
 
 /* ---------- render ---------- */
 const TABS=[['standings','🏆','순위'],['matches','📅','일정'],['stats','🥅','기록'],['roster','👥','선수단'],['more','⚙️','설정']];
+function vLogin(){
+  const list=(pubRoster||ROSTER.map(([no,name])=>({no,name}))).slice().sort((a,b)=>a.no-b.no);
+  const me=draftName||getMe();
+  return `<div style="text-align:center;padding:26px 0 14px"><div style="font-size:46px">🏒</div><div style="font-size:22px;font-weight:800;margin-top:6px">울브스 대경리그</div><div class="note">팀원 전용 기록 앱</div></div>
+  <div class="card">${adminMode?`<h2>관리자 로그인</h2>
+    <label>이메일</label><input id="le" type="email" autocomplete="username" inputmode="email" value="${esc(draftEmail)}">
+    <label>비밀번호</label><input id="lp" type="password" autocomplete="current-password">
+    <button class="b mt" style="width:100%" data-a="adminLogin">관리자 로그인</button>
+    <div class="row mt"><button class="g" data-a="toggleAdmin">← 팀원 로그인으로</button></div>`
+  :`<h2>팀원 로그인</h2>
+    <label>이름</label><select id="ln"><option value="">이름을 선택하세요</option>${list.map(p=>`<option value="${esc(p.name)}" ${p.name===me?'selected':''}>#${p.no} ${esc(p.name)}</option>`).join('')}</select>
+    <label>팀 비밀번호</label><input id="lp" type="password" autocomplete="current-password">
+    <button class="b mt" style="width:100%" data-a="memberLogin">들어가기</button>
+    <div style="text-align:center;margin-top:14px"><button class="g sm" data-a="toggleAdmin">관리자 로그인</button></div>`}</div>
+  ${sync==='error'?'<div class="card empty">서버에 연결할 수 없습니다. 인터넷 연결을 확인하세요.</div>':''}`;
+}
 function render(){
+  if(!user){
+    document.getElementById('app').innerHTML=authReady?vLogin():'<div class="card empty">불러오는 중…</div>';
+    document.getElementById('nav').innerHTML='';document.body.classList.add('ro');renderStatus();return;
+  }
   const v=loaded?{standings:vStandings,matches:vMatches,stats:vStats,roster:vRoster,more:vMore}[tab]():'<div class="card empty">기록을 불러오는 중…</div>';
   document.getElementById('app').innerHTML=v+vSheet();
   renderStatus();
@@ -309,18 +333,29 @@ const A={
   },
   import(){document.getElementById('file').click()},
   reset(){if(confirm('모든 팀원의 공용 기록이 삭제됩니다. 되돌릴 수 없습니다.')&&confirm('정말 삭제할까요?')){S=defaults();save()}},
-  loginBtn(){if(user){tab='more';sheet=null}else sheet={type:'login'}},
-  login(){
-    const pw=document.getElementById('pw').value;if(!pw){toast('비밀번호를 입력하세요');return}
-    if(!fb){toast('서버에 연결되지 않았습니다');return}
-    fb.signIn(fb.auth,RECORDER_EMAIL,pw).then(()=>{sheet=null;toast('기록원으로 로그인했습니다');render()})
-      .catch(e=>{console.error(e);toast(/invalid|wrong|credential/.test(e.code||'')?'비밀번호가 틀렸습니다':'로그인 실패: '+(e.code||e.message))});
+  loginBtn(){tab='more';sheet=null;window.scrollTo(0,0)},
+  toggleAdmin(){adminMode=!adminMode},
+  memberLogin(){
+    const name=document.getElementById('ln').value,pw=document.getElementById('lp').value;draftName=name;
+    if(!name){toast('이름을 선택하세요');return}if(!pw){toast('팀 비밀번호를 입력하세요');return}
+    doLogin(TEAM_EMAIL,pw,()=>{try{localStorage.setItem(ME_KEY,name)}catch(e){}toast(name+'님 환영합니다')});
   },
-  logout(){if(fb&&confirm('로그아웃할까요?'))fb.signOut(fb.auth)},
+  adminLogin(){
+    const em=document.getElementById('le').value.trim(),pw=document.getElementById('lp').value;draftEmail=em;
+    if(!em||!pw){toast('이메일과 비밀번호를 입력하세요');return}
+    if(em.toLowerCase()===TEAM_EMAIL){toast('관리자 이메일을 입력하세요');return}
+    doLogin(em,pw,()=>{adminMode=false;toast('관리자로 로그인했습니다')});
+  },
+  logout(){if(fb&&confirm('로그아웃할까요?')){fb.signOut(fb.auth);sheet=null;tab='standings'}},
   migrate(){const s=legacy();if(s&&confirm(`이 폰의 이전 기록(경기 ${s.matches.length}개)으로 공용 기록을 덮어씁니다.`)){S=s;save();localStorage.setItem(KEY+'_moved','1');toast('공용 기록으로 올렸습니다')}},
   dropLegacy(){localStorage.setItem(KEY+'_moved','1')},
   install(){if(dip){dip.prompt();dip=null;document.getElementById('ib').style.display='none'}}
 };
+function doLogin(em,pw,ok){
+  if(!fb){toast('서버에 연결되지 않았습니다');return}
+  fb.signIn(fb.auth,em,pw).then(()=>{ok();render()})
+    .catch(e=>{console.error(e);const c=e.code||'';toast(/invalid|wrong|credential|user-not-found/.test(c)?'비밀번호가 틀렸습니다':/too-many/.test(c)?'시도가 너무 많습니다. 잠시 후 다시 시도하세요':/network/.test(c)?'인터넷 연결을 확인하세요':'로그인 실패: '+(c||e.message))});
+}
 function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('복사됨 — 단톡방에 붙여넣기')).catch(()=>{prompt('복사해서 사용하세요',t)})}
 
 const MUT=new Set(['newMatch','saveMatch','addEv','delEv','step','toggleDone','delMatch','addPlayer','editPlayer','savePlayer','delPlayer','addTeam','delTeam','import','reset','migrate']);
@@ -328,7 +363,7 @@ document.addEventListener('click',e=>{
   const el=e.target.closest('[data-a]');if(!el)return;
   if(el.classList.contains('sheet')&&e.target!==el)return;
   const f=A[el.dataset.a];if(!f)return;
-  if(MUT.has(el.dataset.a)&&!canEdit()){toast('기록원 로그인이 필요합니다');return}
+  if(MUT.has(el.dataset.a)&&!canEdit()){toast('관리자만 수정할 수 있습니다');return}
   f(el.dataset);render();
 });
 document.addEventListener('change',e=>{
