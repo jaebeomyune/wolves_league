@@ -62,6 +62,9 @@ label{display:block;color:var(--sub);font-size:12px;margin:10px 0 4px}
 body.ro .rw{display:none!important}
 .st{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:4px}.st i{width:8px;height:8px;border-radius:50%;background:var(--sub);display:inline-block}.st.on i{background:var(--ok)}.st.off i{background:#e6b23a}.st.err i{background:var(--bad)}
 .note{color:var(--sub);font-size:13px;line-height:1.5}
+.tl{margin-bottom:14px}.tl-h{font-weight:700;font-size:13px;margin-bottom:6px;color:var(--ice)}.tl-h small{color:var(--sub);font-weight:400}
+.tl-r{margin-bottom:8px}.tl-l{display:flex;justify-content:space-between;font-size:14px}.tl-n{font-size:11px;color:var(--sub);margin-top:2px}
+.bar{height:8px;background:var(--card2);border-radius:4px;overflow:hidden;margin-top:3px}.bar i{display:block;height:100%;background:var(--acc);border-radius:4px}.bar.ok i{background:var(--ok)}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:20px;z-index:30;font-size:13px}
 </style>
 </head>
@@ -231,40 +234,60 @@ function betBoard(){
   const T={};S.matches.filter(m=>m.done&&ours(m)).forEach(m=>Object.entries(settle(m)).forEach(([n,o])=>{const t=T[n]=T[n]||{n,pts:0,hit:0,try:0};t.pts+=o.pts;t.hit+=o.hit;t.try+=o.try}));
   return Object.values(T).sort((a,b)=>b.pts-a.pts||b.hit-a.hit||a.n.localeCompare(b.n));
 }
+const dlTxt=m=>{const d=new Date(closeAt(m).getTime()-864e5+9*36e5);const t=new Date(d.toISOString().slice(0,10)+'T00:00:00');return `${t.getMonth()+1}/${t.getDate()}(${'일월화수목금토'[t.getDay()]}) 밤 12시 마감`};
 const pickTxt=(k,v)=>!v?'-':k==='res'?RES[v]:pn(v);
+// 항목별 집계: [[선택값, 표수, [이름...]], ...] 많은 순
+function tally(m,k){const c={};betsOf(m).forEach(b=>{if(b[k]){(c[b[k]]=c[b[k]]||[]).push(b.n)}});return Object.entries(c).map(([v,ns])=>[v,ns.length,ns]).sort((a,b)=>b[1]-a[1])}
+function tallyHTML(m){
+  const ans=m.done?answers(m):null;
+  return MK.map(([k,l])=>{
+    const t=tally(m,k),tot=t.reduce((s,x)=>s+x[1],0);
+    return `<div class="tl"><div class="tl-h">${l}${ans?` <small>· 정답 ${ans[k].length?ans[k].map(v=>esc(pickTxt(k,v))).join(', '):'없음'}</small>`:''}<small style="float:right">${tot}표</small></div>
+    ${t.length?t.map(([v,n,ns])=>{const ok=ans&&ans[k].includes(v);return `<div class="tl-r"><div class="tl-l"><span>${ok?'✅ ':''}${esc(pickTxt(k,v))}</span><b>${n}표</b></div><div class="bar${ok?' ok':''}"><i style="width:${Math.round(n/tot*100)}%"></i></div><div class="tl-n">${ns.map(esc).join(', ')}</div></div>`}).join(''):'<div class="note">아직 투표가 없습니다.</div>'}</div>`;
+  }).join('');
+}
+function votersLine(m){
+  const voted=new Set(betsOf(m).map(b=>b.n)),all=[...S.players].sort((a,b)=>a.no-b.no).map(p=>p.name);
+  const not=all.filter(n=>!voted.has(n));
+  return `<div class="note" style="margin-top:6px">투표 <b style="color:var(--tx)">${voted.size}</b> / ${all.length}명${not.length&&!m.done?` · 미참여: ${not.map(esc).join(', ')}`:''}</div>`;
+}
 function vBets(){
   const ms=S.matches.filter(ours).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const open=ms.filter(isOpen),wait=ms.filter(m=>!m.done&&!isOpen(m)),done=ms.filter(m=>m.done).reverse().slice(0,5);
   const bd=betBoard();let rk=0,pv=null;
-  const mine=m=>{const b=myBet(m);return b?MK.filter(([k])=>b[k]).map(([k,l])=>`<span class="tag">${l}: ${esc(pickTxt(k,b[k]))}</span>`).join(' ')||'<span class="tag">예측 없음</span>':'<span class="tag">아직 예측 안 함</span>'};
   const opp=m=>esc(m.home===US?m.away:m.home);
-  return `<div class="card"><h2>🎯 예측 가능한 경기</h2>${open.length?open.map(m=>`<div class="ev" data-a="openBet" data-id="${m.id}" style="cursor:pointer;flex-wrap:wrap"><span><b>vs ${opp(m)}</b> <small style="color:var(--sub)">${fds(m.date)} · 참여 ${betsOf(m).length}명</small><div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">${mine(m)}</div></span><button class="b sm">${myBet(m)?'수정':'예측하기'}</button></div>`).join(''):'<div class="empty">예측할 수 있는 경기가 없습니다.<br><small>관리자가 경기 일정을 등록하면 경기 전날까지 예측할 수 있어요.</small></div>'}</div>
-  ${wait.length?`<div class="card"><h2>⏳ 마감 · 결과 대기</h2>${wait.map(m=>`<div class="ev" data-a="openBet" data-id="${m.id}" style="cursor:pointer"><span><b>vs ${opp(m)}</b> <small style="color:var(--sub)">${fds(m.date)} · 참여 ${betsOf(m).length}명</small></span><button class="g sm">예측 보기</button></div>`).join('')}</div>`:''}
-  <div class="card"><h2>🏅 예측 랭킹</h2>${bd.length?`<table><tr><th class="rk">#</th><th class="l">이름</th><th>적중</th><th>포인트</th></tr>${bd.map((x,i)=>{if(x.pts!==pv){rk=i+1;pv=x.pts}return `<tr class="${x.n===getMe()?'us':''}"><td class="rk">${rk}</td><td class="l">${esc(x.n)}</td><td>${x.hit}/${x.try}</td><td><b>${x.pts}</b></td></tr>`}).join('')}</table>`:'<div class="empty">종료된 경기의 예측 결과가 여기에 쌓입니다.</div>'}
-  <div class="note mt">정답 포인트 = 10 × (그 항목 참여 인원 ÷ 정답자 수). 혼자 맞추면 크게 받아요.</div></div>
+  const block=(m,state)=>{const mine=myBet(m);
+    return `<div class="card"><div class="row" style="align-items:flex-start"><div style="flex:3"><h2 style="margin:0">vs ${opp(m)}</h2><div class="note">${fds(m.date)} 경기 · ${state==='open'?dlTxt(m):'투표 마감 · 결과 대기'}</div></div>
+      ${state==='open'?(mine?`<span class="tag w" style="flex:0 0 auto">✔ 투표 완료</span>`:`<button class="b sm" style="flex:0 0 auto" data-a="openBet" data-id="${m.id}">투표하기</button>`):''}</div>
+      ${mine?`<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">${MK.filter(([k])=>mine[k]).map(([k,l])=>`<span class="tag">내 ${l}: ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div>`:''}
+      ${votersLine(m)}
+      <div class="mt">${tallyHTML(m)}</div>
+      ${isAdmin()?`<div class="row mt"><button class="g sm" data-a="openBet" data-id="${m.id}">관리 (투표 초기화)</button></div>`:''}</div>`};
+  return `${open.length?`<div class="note" style="margin:0 2px 8px">🎯 투표 중인 경기 · 한 번 투표하면 수정할 수 없어요</div>${open.map(m=>block(m,'open')).join('')}`:'<div class="card empty">투표할 수 있는 경기가 없습니다.<br><small>관리자가 경기 일정을 등록하면 경기 전날 밤 12시까지 투표할 수 있어요.</small></div>'}
+  ${wait.map(m=>block(m,'wait')).join('')}
+  <div class="card"><h2>🏅 예측 랭킹</h2>${bd.length?`<table><tr><th class="rk">#</th><th class="l">이름</th><th>적중</th><th>포인트</th></tr>${bd.map((x,i)=>{if(x.pts!==pv){rk=i+1;pv=x.pts}return `<tr class="${x.n===getMe()?'us':''}"><td class="rk">${rk}</td><td class="l">${esc(x.n)}</td><td>${x.hit}/${x.try}</td><td><b>${x.pts}</b></td></tr>`}).join('')}</table>`:'<div class="empty">관리자가 경기를 종료하면 예측 결과가 쌓입니다.</div>'}
+  <div class="note mt">정답 포인트 = 10 × (그 항목 투표 인원 ÷ 정답자 수). 혼자 맞추면 크게 받아요.</div></div>
   ${done.length?`<div class="card"><h2>📜 지난 경기 예측 결과</h2>${done.map(m=>`<div class="ev" data-a="openBet" data-id="${m.id}" style="cursor:pointer"><span><b>vs ${opp(m)}</b> <small style="color:var(--sub)">${fds(m.date)} · ${score(m).h}:${score(m).a}</small></span><button class="g sm">결과 보기</button></div>`).join('')}</div>`:''}`;
 }
 function vBetSheet(m){
-  const open=isOpen(m),bs=betsOf(m),b=myBet(m)||{},me=getMe();
-  const pl=[...S.players].sort((a,b)=>a.no-b.no);
-  const cnt=k=>{const c={};bs.forEach(x=>{if(x[k])c[x[k]]=(c[x[k]]||0)+1});return c};
-  const ans=m.done?answers(m):null,st=m.done?settle(m):{};
-  const dist=k=>{const c=cnt(k),e=Object.entries(c).sort((a,b)=>b[1]-a[1]);
-    if(!e.length)return '<div class="note">아직 아무도 고르지 않았어요.</div>';
-    return e.map(([v,n])=>{const who=open?'':` <small style="color:var(--sub)">${bs.filter(x=>x[k]===v).map(x=>esc(x.n)).join(', ')}</small>`;
-      const ok=ans&&ans[k].includes(v);return `<div class="ev"><span>${ok?'✅ ':''}${esc(pickTxt(k,v))} <b>${n}명</b>${who}</span></div>`}).join('')};
-  const sel=(k)=>k==='res'
-    ?`<div class="seg" style="margin:6px 0 0">${[['','안 함'],['W','승'],['D','무'],['L','패']].map(([v,l])=>`<button class="${(b.res||'')===v?'on':''}" data-a="pickRes" data-v="${v}">${l}</button>`).join('')}</div><input type="hidden" id="bres" value="${b.res||''}">`
-    :`<select id="b${k}"><option value="">선택 안함</option>${pl.map(p=>`<option value="${p.id}" ${b[k]===p.id?'selected':''}>#${p.no} ${esc(p.name)}</option>`).join('')}</select>`;
+  const open=isOpen(m),bs=betsOf(m),mine=myBet(m),me=getMe();
+  const pl=[...S.players].sort((a,b)=>a.no-b.no),st=m.done?settle(m):{};
+  const sel=k=>k==='res'
+    ?`<div class="seg" style="margin:6px 0 0">${[['','안 함'],['W','승'],['D','무'],['L','패']].map(([v,l])=>`<button class="${v===''?'on':''}" data-a="pickRes" data-v="${v}">${l}</button>`).join('')}</div><input type="hidden" id="bres" value="">`
+    :`<select id="b${k}"><option value="">선택 안 함</option>${pl.map(p=>`<option value="${p.id}">#${p.no} ${esc(p.name)}</option>`).join('')}</select>`;
+  const form=open&&!mine;
   return `<div class="sheet" data-a="closeSheet"><div>
     <div class="row"><h2 style="margin:0;flex:3">🎯 ${esc(m.home)} vs ${esc(m.away)}</h2><button class="g sm" data-a="closeSheet" style="flex:0 0 auto">닫기</button></div>
-    <div class="note" style="margin:4px 0 10px">${m.done?`${fds(m.date)} · `:''}${m.done?`경기 종료 ${score(m).h}:${score(m).a}`:open?`${fds(m.date)} 0시 마감`:`${fds(m.date)} · 예측 마감 · 결과 대기`} · 참여 ${bs.length}명</div>
-    ${open?`${me?'':`<label>내 이름</label><select id="bname"><option value="">이름을 선택하세요</option>${pl.map(p=>`<option>${esc(p.name)}</option>`).join('')}</select>`}
-      ${MK.map(([k,l])=>`<div class="card"><h2>${l}</h2>${sel(k)}<div class="mt">${dist(k)}</div></div>`).join('')}
-      <div class="note">마감 전에는 인원수만 보이고, 마감 후에 누가 무엇을 골랐는지 공개됩니다.</div>
-      <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="saveBet">예측 저장</button></div>`
-    :`${MK.map(([k,l])=>`<div class="card"><h2>${l}${ans?` <small style="color:var(--sub);font-weight:400">· 정답 ${ans[k].length?ans[k].map(v=>esc(pickTxt(k,v))).join(', '):'없음'}</small>`:''}</h2>${dist(k)}</div>`).join('')}
-      ${m.done&&Object.keys(st).length?`<div class="card"><h2>이 경기 포인트</h2><table>${Object.entries(st).sort((a,b)=>b[1].pts-a[1].pts).map(([n,o])=>`<tr><td class="l">${esc(n)}</td><td>${o.hit}/${o.try} 적중</td><td><b>+${o.pts}</b></td></tr>`).join('')}</table></div>`:''}`}
+    <div class="note" style="margin:4px 0 10px">${fds(m.date)} · ${m.done?`경기 종료 ${score(m).h}:${score(m).a}`:open?dlTxt(m):'투표 마감 · 결과 대기'}</div>
+    ${form?`${me?`<div class="note">투표자: <b style="color:var(--tx)">${esc(me)}</b></div>`:`<label>내 이름</label><select id="bname"><option value="">이름을 선택하세요</option>${pl.map(p=>`<option>${esc(p.name)}</option>`).join('')}</select>`}
+      ${MK.map(([k,l])=>`<label>${l}</label>${sel(k)}`).join('')}
+      <div class="note mt" style="color:var(--acc)">⚠️ 한 번 투표하면 수정할 수 없어요. 신중하게 골라주세요.</div>
+      <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="saveBet">투표하기</button></div>
+      <h2 class="mt" style="margin-top:18px">📊 현재 집계</h2>${votersLine(m)}<div class="mt">${tallyHTML(m)}</div>`
+    :`${mine?`<div class="card"><h2>내 투표 ${open?'<small style="color:var(--sub);font-weight:400">· 수정 불가</small>':''}</h2><div style="display:flex;gap:4px;flex-wrap:wrap">${MK.map(([k,l])=>`<span class="tag">${l}: ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div></div>`:''}
+      <h2>📊 집계</h2>${votersLine(m)}<div class="mt">${tallyHTML(m)}</div>
+      ${m.done&&Object.keys(st).length?`<div class="card mt"><h2>이 경기 포인트</h2><table>${Object.entries(st).sort((a,b)=>b[1].pts-a[1].pts).map(([n,o])=>`<tr><td class="l">${esc(n)}</td><td>${o.hit}/${o.try} 적중</td><td><b>+${o.pts}</b></td></tr>`).join('')}</table></div>`:''}`}
+    ${isAdmin()&&bs.length?`<div class="card mt"><h2>관리자 · 투표 초기화</h2><div class="note">잘못 투표한 팀원의 투표를 지우면 그 사람이 다시 투표할 수 있어요.</div>${bs.map(b=>`<div class="ev"><span>${esc(b.n)}</span><button class="d sm" data-a="resetBet" data-n="${esc(b.n)}">초기화</button></div>`).join('')}</div>`:''}
   </div></div>`;
 }
 function vMore(){
@@ -433,10 +456,15 @@ const A={
     if(!n){n=(document.getElementById('bname')||{}).value||'';if(!n){toast('이름을 선택하세요');return}try{localStorage.setItem(ME_KEY,n)}catch(e){}}
     const top=document.getElementById('btop').value||null,first=document.getElementById('bfirst').value||null,res=document.getElementById('bres').value||null;
     if(!top&&!first&&!res){toast('하나 이상 골라주세요');return}
+    if(BETS.some(b=>b.m===m.id&&b.n===n)){toast(n+'님은 이미 투표했습니다');return}
+    const miss=[!top&&'최다 득점자',!first&&'첫 골 주인공',!res&&'경기 결과'].filter(Boolean);
+    const sum=`${n}님의 투표\n\n최다 득점자: ${pickTxt('top',top)}\n첫 골 주인공: ${pickTxt('first',first)}\n경기 결과: ${pickTxt('res',res)}\n\n${miss.length?`※ ${miss.join(', ')}은(는) 투표하지 않습니다.\n`:''}한 번 투표하면 수정할 수 없습니다. 투표할까요?`;
+    if(!confirm(sum))return;
     fb.setDoc(fb.doc(fb.db,'bets',m.id+'__'+n),{m:m.id,n,top,first,res,at:Date.now()})
-      .then(()=>toast('예측을 저장했습니다')).catch(e=>{console.error(e);toast('저장 실패: '+(e.code||'네트워크 확인'))});
+      .then(()=>toast('투표 완료!')).catch(e=>{console.error(e);toast((e.code||'').includes('permission')?'이미 투표했거나 마감됐습니다':'저장 실패: '+(e.code||'네트워크 확인'))});
     sheet=null;
   },
+  resetBet(d){const m=S.matches.find(x=>x.id===sheet.id);if(!m||!confirm(d.n+'님의 투표를 초기화할까요?'))return;fb.deleteDoc(fb.doc(fb.db,'bets',m.id+'__'+d.n)).then(()=>toast('초기화했습니다')).catch(e=>toast('실패: '+(e.code||'')))},
   install(){if(dip){dip.prompt();dip=null;document.getElementById('ib').style.display='none'}}
 };
 function doLogin(em,pw,ok){
@@ -446,7 +474,7 @@ function doLogin(em,pw,ok){
 }
 function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('복사됨 — 단톡방에 붙여넣기')).catch(()=>{prompt('복사해서 사용하세요',t)})}
 
-const MUT=new Set(['uploadLocal','newMatch','saveMatch','addEv','delEv','step','toggleDone','delMatch','addPlayer','editPlayer','savePlayer','delPlayer','addTeam','delTeam','import','reset','migrate']);
+const MUT=new Set(['resetBet','uploadLocal','newMatch','saveMatch','addEv','delEv','step','toggleDone','delMatch','addPlayer','editPlayer','savePlayer','delPlayer','addTeam','delTeam','import','reset','migrate']);
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-a]');if(!el)return;
   if(el.classList.contains('sheet')&&e.target!==el)return;
