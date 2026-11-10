@@ -1,4 +1,4 @@
-const C='wolves-v12',F=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
+const C='wolves-v13',F=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(F)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
 // 앱 파일과 Firebase SDK 스크립트만 캐시. Firestore/Auth 통신은 건드리지 않음.

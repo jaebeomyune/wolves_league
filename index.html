@@ -3,78 +3,190 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1b2e">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <title>울브스 대경리그</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <style>
-:root{--bg:#0b1b2e;--card:#13293f;--card2:#1a3552;--line:#25476b;--tx:#eaf2fb;--sub:#8fa9c4;--acc:#ff8a2b;--ok:#37c98b;--bad:#ef5a5a;--ice:#6cc4ff}
+/* 윤재범 디자인시스템 토큰 */
+:root{
+--primary:#4458EB;--primary-dark:#2A3A9C;--primary-light:#AECAFF;--primary-lighter:#E6F1FF;
+--accent:#FFC700;--accent-dark:#E39D16;--accent-lighter:#FFF9E2;
+--success:#3AC990;--success-dark:#007D51;--success-light:#E2F7ED;
+--danger:#F25858;--danger-dark:#BB2425;--danger-light:#FFECEF;
+--black:#1E293B;--black-light:#303D53;--gray-dark:#404F68;--gray:#718096;--gray-light:#ABB7CD;--gray-lighter:#DDE2EC;
+--bg-dark:#E5EAF4;--bg:#F6F8FD;--white:#FFFFFF;--white-70:rgba(255,255,255,.7);--white-30:rgba(255,255,255,.3);
+--dim:rgba(30,41,59,.3);--toast:rgba(48,61,83,.9);
+--shadow-top:0 4px 12px rgba(171,183,205,.18);--shadow-bottom:0 -4px 16px rgba(171,183,205,.18);--shadow-popup:0 8px 24px rgba(171,183,205,.18);
+--sub:var(--gray-dark);--tx:var(--black)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"Noto Sans KR","Malgun Gothic",sans-serif;font-size:15px}
-body{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
-header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(12px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
-header h1{font-size:18px;margin:0;flex:1}
-header small{color:var(--sub)}
-main{padding:14px 14px 20px;max-width:720px;margin:0 auto}
-nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:#0e2238;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;min-width:0;background:none;border:0;color:var(--sub);padding:10px 0 9px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
-nav button b{font-size:19px;font-weight:400}
-nav button.on{color:var(--acc)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
-h2{font-size:15px;margin:2px 0 10px;color:var(--ice)}
-table{width:100%;border-collapse:collapse}
-th,td{padding:8px 4px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
-th{color:var(--sub);font-weight:500;font-size:12px}
+html,body{margin:0;background:var(--bg);color:var(--black);font-family:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:16px;line-height:24px;letter-spacing:-.6px;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;letter-spacing:inherit;color:inherit}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+svg{flex:0 0 auto}
+
+/* 헤더 */
+header{position:sticky;top:0;z-index:5;background:var(--white);box-shadow:var(--shadow-top);padding:calc(10px + env(safe-area-inset-top)) 20px 10px;display:flex;align-items:center;gap:12px;min-height:56px}
+header h1{margin:0;flex:1;display:flex;align-items:baseline;gap:6px;font-size:20px;line-height:28px;font-weight:700}
+header h1 span{font-size:14px;line-height:20px;font-weight:500;color:var(--gray)}
+.st{display:flex;align-items:center;gap:6px;font-size:12px;line-height:18px;color:var(--gray-dark)}
+.st i{width:8px;height:8px;border-radius:999px;background:var(--gray-light)}
+.st.on i{background:var(--success)}.st.off i{background:var(--accent-dark)}.st.err i{background:var(--danger)}.st.err{color:var(--danger-dark);font-weight:700}
+
+main{padding:20px 20px 32px;max-width:560px;margin:0 auto}
+
+/* 하단 내비 */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;justify-content:center;background:var(--white);box-shadow:var(--shadow-bottom);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;max-width:96px;min-width:0;background:none;border:0;padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;line-height:14px;letter-spacing:0;color:var(--gray)}
+nav svg{width:24px;height:24px;fill:var(--gray-light)}
+nav button.on{color:var(--primary);font-weight:700}nav button.on svg{fill:var(--primary)}
+
+/* 면·제목 */
+.card{background:var(--white);border-radius:16px;padding:20px;margin-bottom:12px}
+h2{margin:0 0 12px;font-size:18px;line-height:28px;font-weight:700}
+.hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:12px}.hd h2{margin:0}
+.cap{font-size:12px;line-height:18px;color:var(--gray);font-weight:400}
+.note{font-size:14px;line-height:20px;color:var(--gray-dark)}
+.empty{color:var(--gray-dark);text-align:center;padding:24px 8px;font-size:14px;line-height:20px}
+.empty b{display:block;color:var(--black);font-size:16px;line-height:24px;margin-bottom:4px}
+.sec{font-size:14px;line-height:20px;font-weight:700;color:var(--gray-dark);margin:24px 0 8px}
+
+/* 표 */
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:10px 4px;text-align:center;border-bottom:1px solid var(--gray-lighter);white-space:nowrap;font-size:14px;line-height:20px}
+th{color:var(--gray);font-weight:700;font-size:12px;line-height:18px;padding-top:0}
 td.l,th.l{text-align:left}
 tr:last-child td{border-bottom:0}
-tr.us td{background:rgba(255,138,43,.12);font-weight:700}
-.rk{width:26px;color:var(--sub)}
-button.b,.btn{background:var(--acc);color:#1a1000;border:0;border-radius:10px;padding:10px 14px;font-weight:700;font-size:14px}
-button.g{background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:14px}
-button.d{background:transparent;color:var(--bad);border:1px solid var(--bad);border-radius:10px;padding:10px 14px;font-size:14px}
-button.sm{padding:6px 10px;font-size:12px}
-.row{display:flex;gap:8px;align-items:center}
-.row>*{flex:1}
-.mt{margin-top:10px}
-input,select{width:100%;background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:11px;font-size:15px}
-label{display:block;color:var(--sub);font-size:12px;margin:10px 0 4px}
-.m{display:flex;align-items:center;gap:8px;padding:11px 4px;border-bottom:1px solid var(--line)}
+tr.us td{background:var(--primary-lighter);color:var(--primary-dark);font-weight:700;border-bottom-color:transparent}
+tr.us td:first-child{border-radius:8px 0 0 8px}tr.us td:last-child{border-radius:0 8px 8px 0}
+.rk{width:28px;color:var(--gray);font-weight:700}
+.num{display:inline-block;min-width:30px;color:var(--primary);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* 버튼 */
+button{cursor:pointer}
+button.b,button.g,button.d{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:48px;padding:0 20px;border-radius:12px;font-size:16px;line-height:24px;font-weight:700;border:1px solid transparent;white-space:nowrap}
+button.b{background:var(--primary);color:var(--white)}button.b:active{background:var(--primary-dark)}
+button.g{background:var(--white);color:var(--gray-dark);border-color:var(--gray-lighter)}button.g:active{background:var(--bg-dark)}
+button.d{background:var(--white);color:var(--danger-dark);border-color:var(--gray-lighter)}button.d:active{background:var(--danger-light)}
+button.sm{height:32px;padding:0 12px;border-radius:8px;font-size:14px;line-height:20px}
+button.full{width:100%}
+button svg{width:20px;height:20px;fill:currentColor}
+button.sm svg{width:16px;height:16px}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--primary-dark);outline-offset:2px}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+.mt{margin-top:12px}
+
+/* 입력 */
+input,select{width:100%;height:48px;background:var(--white);color:var(--black);border:1px solid var(--gray-lighter);border-radius:12px;padding:0 12px;font-size:16px;appearance:none;-webkit-appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23718096' d='M12 15.4 6.6 10 8 8.6l4 4 4-4 1.4 1.4z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:24px;padding-right:40px}
+input:focus,select:focus{outline:none;border-color:var(--primary)}
+input::placeholder{color:var(--gray-light)}
+label{display:block;color:var(--gray-dark);font-size:14px;line-height:20px;font-weight:700;margin:16px 0 8px}
+
+/* 팀 현황 배너 (Primary Gradient) */
+.hero{background:linear-gradient(180deg,#4458EB 0%,#6B7FFF 100%);color:var(--white);border-radius:16px;padding:20px;margin-bottom:12px}
+.hero .t{font-size:14px;line-height:20px;font-weight:500}
+.hero .r{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+.hero .r b{font-size:32px;line-height:42px;font-weight:700;font-variant-numeric:tabular-nums}
+.hero .r span{font-size:14px;line-height:20px}
+.hero dl{display:flex;gap:24px;margin:16px 0 0;padding-top:16px;border-top:1px solid var(--white-30)}
+.hero dl div{display:flex;flex-direction:column}
+.hero dt{font-size:12px;line-height:18px}
+.hero dd{margin:0;font-size:18px;line-height:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.hero .nx{margin-top:16px;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;font-size:14px;line-height:20px}
+.hero .nx svg{width:20px;height:20px;fill:var(--white)}
+.hero .nx b{font-weight:700}
+
+/* 경기 목록 */
+.m{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--gray-lighter);cursor:pointer}
 .m:last-child{border-bottom:0}
-.m .dt{width:62px;color:var(--sub);font-size:12px;line-height:1.3}
-.m .tm{flex:1;display:flex;align-items:center;justify-content:space-between;gap:6px}
-.m .tm span{flex:1}
-.m .tm span:last-child{text-align:right}
-.m .sc{min-width:58px;text-align:center;font-weight:800;font-size:17px}
-.tag{font-size:11px;border-radius:6px;padding:2px 6px;background:var(--card2);color:var(--sub)}
-.tag.w{background:rgba(55,201,139,.18);color:var(--ok)}.tag.l{background:rgba(239,90,90,.18);color:var(--bad)}.tag.dr{background:rgba(143,169,196,.2);color:var(--sub)}
-.empty{color:var(--sub);text-align:center;padding:22px 8px;line-height:1.6}
-.seg{display:flex;background:var(--card2);border-radius:10px;padding:3px;margin-bottom:12px}
-.seg button{flex:1;background:none;border:0;color:var(--sub);padding:8px;border-radius:8px;font-size:13px}
-.seg button.on{background:var(--acc);color:#1a1000;font-weight:700}
-.sheet{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
-.sheet>div{background:var(--bg);width:100%;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
-.big{display:flex;align-items:center;justify-content:center;gap:16px;font-size:34px;font-weight:800;margin:8px 0}
-.step{display:flex;align-items:center;justify-content:center;gap:10px}
-.step button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--tx);font-size:20px}
-.ev{display:flex;align-items:center;gap:8px;padding:9px 2px;border-bottom:1px solid var(--line)}
-.ev:last-child{border-bottom:0}.ev span{flex:1}
-.num{display:inline-block;min-width:26px;text-align:center;color:var(--acc);font-weight:700}
+.m .dt{flex:0 0 40px;text-align:center;color:var(--gray-dark);font-size:12px;line-height:16px;font-weight:700}
+.m .tm{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.m .ln{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:16px;line-height:24px}
+.m .ln span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.m .ln.us span{font-weight:700}
+.m .ln b{min-width:24px;text-align:right;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.m .ln.lo b{color:var(--gray)}
+
+/* 배지 */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:18px;font-weight:700;border-radius:8px;padding:3px 8px;background:var(--bg-dark);color:var(--gray-dark);white-space:nowrap}
+.tag svg{width:14px;height:14px;fill:currentColor}
+.tag.w{background:var(--success-light);color:var(--success-dark)}
+.tag.l{background:var(--danger-light);color:var(--danger-dark)}
+.tag.p{background:var(--primary-lighter);color:var(--primary)}
+.tag.k{background:var(--black);color:var(--white)}
+.tags{display:flex;gap:4px;flex-wrap:wrap}
+
+/* 세그먼트 */
+.seg{display:flex;background:var(--bg-dark);border-radius:12px;padding:4px;margin-bottom:12px}
+.seg button{flex:1;background:none;border:0;height:40px;border-radius:8px;font-size:14px;line-height:20px;font-weight:700;color:var(--gray-dark)}
+.seg button.on{background:var(--white);color:var(--black);box-shadow:var(--shadow-top)}
+
+/* 바텀시트 */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--dim);display:flex;align-items:flex-end}
+.sheet>div{background:var(--bg);width:100%;max-width:560px;margin:0 auto;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom))}
+.sh-h{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}.sh-h>div{flex:1}
+.sh-h h2{margin:0;font-size:20px;line-height:28px}
+.sh-form{background:var(--white);border-radius:16px;padding:4px 20px 20px}
+
+/* 스코어 */
+.big{display:flex;align-items:center;justify-content:center;gap:16px;margin:0 0 16px;font-variant-numeric:tabular-nums}
+.big div{display:flex;flex-direction:column;align-items:center;min-width:96px}
+.big b{font-size:32px;line-height:42px;font-weight:700}
+.big span{font-size:14px;line-height:20px;color:var(--gray-dark)}
+.big i{font-style:normal;color:var(--gray-light);font-size:24px}
+.step{display:flex;align-items:center;justify-content:center;gap:16px}
+.step b{min-width:40px;text-align:center;font-size:28px;line-height:38px;font-variant-numeric:tabular-nums}
+.step button{width:40px;height:40px;border-radius:999px;border:1px solid var(--gray-lighter);background:var(--white);display:flex;align-items:center;justify-content:center}
+.step button svg{width:20px;height:20px;fill:var(--gray-dark)}
+
+/* 목록 행 */
+.ev{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-lighter);font-size:16px;line-height:24px}
+.ev:last-child{border-bottom:0}.ev>span{flex:1;min-width:0}
+.ev small{display:block;font-size:14px;line-height:20px;color:var(--gray-dark)}
+.ev>.gi{flex:0 0 32px}
+.gi{width:32px;height:32px;border-radius:999px;background:var(--primary-lighter);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* 예측 항목 */
+.tl{background:var(--bg);border-radius:12px;padding:16px;margin-bottom:8px}
+.sheet .tl{background:var(--white)}
+.tl:last-child{margin-bottom:0}
+.tl-h{display:flex;align-items:center;gap:8px;font-size:16px;line-height:24px;font-weight:700;margin-bottom:8px}
+.tl-h .ic{width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:var(--mcl)}
+.tl-h .ic svg{width:18px;height:18px;fill:var(--mcd)}
+.tl-h .cnt{margin-left:auto;font-size:14px;line-height:20px;font-weight:500;color:var(--gray-dark)}
+.mk-top{--mc:var(--accent);--mcl:var(--accent-lighter);--mcd:var(--accent-dark)}
+.mk-first{--mc:var(--primary);--mcl:var(--primary-lighter);--mcd:var(--primary)}
+.mk-res{--mc:var(--success);--mcl:var(--success-light);--mcd:var(--success-dark)}
+.tl-r{padding:8px 0}
+.tl-l{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;line-height:20px;font-weight:500}
+.tl-l b{font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--bg-dark);border-radius:999px;overflow:hidden;margin-top:6px}
+.sheet .tl .bar{background:var(--bg)}
+.bar i{display:block;height:100%;background:var(--mc,var(--primary));border-radius:999px}
+.tl-n{font-size:12px;line-height:18px;color:var(--gray-dark);margin-top:4px}
+.tl select{margin-top:4px}
+.tl .seg{margin:4px 0 0;background:var(--bg)}
+.tl .seg button.on{background:var(--mcd);color:var(--white);box-shadow:none}
+.warn{display:flex;gap:8px;align-items:flex-start;margin-top:16px;padding:12px;border-radius:12px;background:var(--danger-light);color:var(--danger-dark);font-size:14px;line-height:20px;font-weight:500}
+.warn svg{width:20px;height:20px;fill:var(--danger)}
+.mbox{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mbox h2{margin:0}
+
 body.ro .rw{display:none!important}
-.st{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:4px}.st i{width:8px;height:8px;border-radius:50%;background:var(--sub);display:inline-block}.st.on i{background:var(--ok)}.st.off i{background:#e6b23a}.st.err i{background:var(--bad)}
-.note{color:var(--sub);font-size:13px;line-height:1.5}
-.tl{margin-bottom:10px;background:rgba(0,0,0,.18);border:1px solid var(--line);border-left:4px solid var(--mc);border-radius:10px;padding:10px 12px}
-.tl-h{font-weight:800;font-size:14px;margin-bottom:8px;color:var(--mc);display:flex;align-items:center;gap:6px}.tl-h .ic{font-size:16px}
-.mk-top{--mc:#ffc23d}.mk-first{--mc:#5cc8ff}.mk-res{--mc:#c792ff}
-.tl .bar i{background:var(--mc)}.tl .bar.ok i{background:var(--ok)}
-.tl label{margin-top:0}
-.tl .seg{background:rgba(0,0,0,.25)}.tl .seg button.on{background:var(--mc);color:#14081f}.tl-h small{color:var(--sub);font-weight:400}
-.tl-r{margin-bottom:8px}.tl-l{display:flex;justify-content:space-between;font-size:14px}.tl-n{font-size:11px;color:var(--sub);margin-top:2px}
-.bar{height:8px;background:var(--card2);border-radius:4px;overflow:hidden;margin-top:3px}.bar i{display:block;height:100%;background:var(--acc);border-radius:4px}.bar.ok i{background:var(--ok)}
-.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:20px;z-index:30;font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--toast);color:var(--white);padding:12px 16px;border-radius:12px;z-index:30;font-size:14px;line-height:20px;max-width:calc(100% - 40px);text-align:center}
+@media (prefers-reduced-motion:no-preference){.sheet>div{animation:up .22s ease-out}@keyframes up{from{transform:translateY(32px)}to{transform:none}}}
+
+/* 로그인 */
+.lg-hero{background:linear-gradient(180deg,#4458EB 0%,#6B7FFF 100%);color:var(--white);border-radius:16px;padding:32px 20px 28px;margin-bottom:12px}
+.lg-hero b{display:block;font-size:32px;line-height:42px;font-weight:700}
+.lg-hero span{font-size:16px;line-height:24px}
+.linkbtn{background:none;border:0;color:var(--gray-dark);font-size:14px;line-height:20px;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:8px}
 </style>
 </head>
 <body>
-<header><h1>🏒 울브스 <small>대경리그</small></h1><span class="st" id="st"><i></i><span>연결 중</span></span><button class="g sm" data-a="loginBtn" id="lb" style="display:none"></button><button class="g sm" data-a="install" id="ib" style="display:none">앱 설치</button></header>
+<header><h1>울브스<span>대경리그</span></h1><span class="st" id="st"><i></i><span>연결 중</span></span><button class="g sm" data-a="loginBtn" id="lb" style="display:none"></button><button class="g sm" data-a="install" id="ib" style="display:none">앱 설치</button></header>
 <main id="app"></main>
 <nav id="nav"></nav>
 <script type="module">
@@ -101,7 +213,7 @@ const canEdit=isAdmin;
 function save(){
   try{localStorage.setItem(CACHE_KEY,JSON.stringify(S))}catch(e){}
   if(!fb||!isAdmin()){toast('관리자 로그인이 필요합니다');return}
-  const err=e=>{console.error(e);if((e.code||'').includes('permission')){sync='denied';render();alert('⚠️ 서버에 저장되지 않았습니다 (권한 없음)\n\nFirestore 규칙의 관리자 이메일이 지금 로그인한 이메일('+(user&&user.email)+')과 똑같은지 확인하세요.')}else toast('저장 실패: '+(e.code||'네트워크 확인'))};
+  const err=e=>{console.error(e);if((e.code||'').includes('permission')){sync='denied';render();alert('서버에 저장되지 않았습니다 (권한 없음)\n\nFirestore 규칙의 관리자 이메일이 지금 로그인한 이메일('+(user&&user.email)+')과 똑같은지 확인하세요.')}else toast('저장 실패: '+(e.code||'네트워크 확인'))};
   fb.setDoc(ref,JSON.parse(JSON.stringify(S))).catch(err);
   fb.setDoc(pubRef,{players:S.players.map(p=>({no:p.no,name:p.name}))}).catch(err); // 로그인 화면용 명단(이름·번호만)
 }
@@ -144,7 +256,7 @@ function renderStatus(){
   const m={connecting:['','연결 중'],live:['on','실시간'],pending:['off','저장 중'],offline:['off','오프라인'],error:['err','연결 오류'],denied:['err','저장 권한 없음']}[sync];
   const st=document.getElementById('st');st.className='st '+m[0];st.lastChild.textContent=m[1];st.style.display=user?'':'none';
   const lb=document.getElementById('lb');lb.style.display=user?'':'none';
-  lb.textContent=isAdmin()?'✏️ 관리자':(getMe()||'팀원');lb.className=isAdmin()?'b sm':'g sm';
+  lb.textContent=isAdmin()?'관리자':(getMe()||'팀원');lb.className='g sm';
   document.body.classList.toggle('ro',!canEdit());
 }
 function toast(t){document.querySelectorAll('.toast').forEach(x=>x.remove());const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1800)}
@@ -175,46 +287,82 @@ function pstats(){
   return Object.values(R);
 }
 
+/* ---------- 아이콘 (24×24 Fill) ---------- */
+const IC={
+  trophy:'<path d="M6 3h12v2h3v3a5 5 0 0 1-4.7 5 6 6 0 0 1-3.3 2.8V18h3v3H8v-3h3v-2.2A6 6 0 0 1 7.7 13 5 5 0 0 1 3 8V5h3V3zm0 4H5v1a3 3 0 0 0 1 2.2V7zm12 0v3.2A3 3 0 0 0 19 8V7h-1z"/>',
+  cal:'<path d="M7 2h2v2h6V2h2v2h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V2zM5 9v10h14V9H5zm2 2h4v4H7v-4z"/>',
+  chart:'<path d="M4 13h4v8H4v-8zm6-10h4v18h-4V3zm6 6h4v12h-4V9z"/>',
+  vote:'<path fill-rule="evenodd" d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm5.6 12.8 7.1-7.1-1.4-1.4-5.7 5.7-2.8-2.8-1.4 1.4 4.2 4.2z"/>',
+  people:'<path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7.5 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6v1H2v-1zm15.8 1v-1c0-2-.8-3.7-2-5 3.5.2 6.2 2.4 6.2 5v1h-4.2z"/>',
+  gear:'<path fill-rule="evenodd" d="M19.1 12.9a7 7 0 0 0 0-1.8l2-1.6a.5.5 0 0 0 .1-.6l-1.9-3.3a.5.5 0 0 0-.6-.2l-2.4 1a7 7 0 0 0-1.6-.9L14.4 3a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4l-.3 2.5a7 7 0 0 0-1.6.9l-2.4-1a.5.5 0 0 0-.6.2L2.8 8.9a.5.5 0 0 0 .1.6l2 1.6a7 7 0 0 0 0 1.8l-2 1.6a.5.5 0 0 0-.1.6l1.9 3.3c.1.2.4.3.6.2l2.4-1c.5.4 1 .7 1.6.9l.3 2.5c0 .2.3.4.5.4h3.8c.2 0 .5-.2.5-.4l.3-2.5c.6-.2 1.1-.5 1.6-.9l2.4 1c.2.1.5 0 .6-.2l1.9-3.3a.5.5 0 0 0-.1-.6l-2-1.6zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>',
+  crown:'<path d="M3 7.5 7.5 11 12 4l4.5 7L21 7.5 19.2 18H4.8L3 7.5zM5 20h14v2H5v-2z"/>',
+  bolt:'<path d="M13.5 2 4 14h6.5l-1 8L19 10h-6.5l1-8z"/>',
+  board:'<path fill-rule="evenodd" d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm7 3v8h2V8h-2z"/>',
+  check:'<path d="m9.5 16.6-4.3-4.3-1.4 1.4 5.7 5.7L20.2 8.7l-1.4-1.4z"/>',
+  alert:'<path fill-rule="evenodd" d="M12 2 1 21h22L12 2zm-1 7v5h2V9h-2zm0 7v2h2v-2h-2z"/>',
+  plus:'<path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/>',
+  minus:'<path d="M5 11h14v2H5z"/>',
+  copy:'<path d="M8 3h11a2 2 0 0 1 2 2v11h-2V5H8V3zM5 7h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/>',
+  lock:'<path fill-rule="evenodd" d="M7 10V7a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1zm2 0h6V7a3 3 0 0 0-6 0v3z"/>',
+  next:'<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1 5h2v5.4l3.5 2.1-1 1.7L11 13.6V7z"/>'
+};
+const ic=n=>`<svg viewBox="0 0 24 24" aria-hidden="true">${IC[n]}</svg>`;
+
 /* ---------- views ---------- */
+const opp=m=>m.home===US?m.away:m.home;
 function vStandings(){
-  const r=standings();
-  const played=S.matches.filter(m=>m.done).length;
-  return `<div class="card"><h2>팀 순위 <small style="color:var(--sub);font-weight:400">· 종료된 경기 ${played}개 기준</small></h2>
+  const r=standings(),played=S.matches.filter(m=>m.done).length;
+  const i=r.findIndex(x=>x.t===US),me=r[i];
+  const today=new Date(Date.now()+9*36e5).toISOString().slice(0,10);
+  const nx=S.matches.filter(m=>!m.done&&ours(m)&&(m.date||'')>=today).sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
+  const gd=me?me.gf-me.ga:0;
+  const hero=me?`<div class="hero">
+    <div class="t">울브스 현재 순위</div>
+    <div class="r"><b>${me.g?`${i+1}위`:'-'}</b><span>${r.length}팀 중</span></div>
+    <dl><div><dt>전적</dt><dd>${me.w}승 ${me.d}무 ${me.l}패</dd></div><div><dt>승점</dt><dd>${me.pts}</dd></div><div><dt>득실차</dt><dd>${gd>0?'+':''}${gd}</dd></div></dl>
+    ${nx?`<div class="nx">${ic('next')}<span>다음 경기 <b>${fds(nx.date)} vs ${esc(opp(nx))}</b></span></div>`:''}
+  </div>`:'';
+  return `${hero}<div class="card"><div class="hd"><h2>팀 순위</h2><span class="cap">종료된 경기 ${played}개 기준</span></div>
   <div style="overflow:auto"><table><tr><th class="rk">#</th><th class="l">팀</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득</th><th>실</th><th>차</th><th>승점</th></tr>
   ${r.map((x,i)=>`<tr class="${x.t===US?'us':''}"><td class="rk">${i+1}</td><td class="l">${esc(x.t)}</td><td>${x.g}</td><td>${x.w}</td><td>${x.d}</td><td>${x.l}</td><td>${x.gf}</td><td>${x.ga}</td><td>${x.gf-x.ga}</td><td><b>${x.pts}</b></td></tr>`).join('')}</table></div>
-  <div class="row mt"><button class="g" data-a="copyStand">📋 순위 복사 (단톡용)</button></div></div>
-  ${S.teams.length<2?'<div class="card empty">설정 탭에서 대경리그 참가팀을 추가하세요.</div>':''}`;
+  <button class="g full mt" data-a="copyStand">${ic('copy')}순위 복사</button></div>
+  ${S.teams.length<2?'<div class="card empty"><b>참가팀이 없습니다</b>설정에서 대경리그 참가팀을 추가해 주세요.</div>':''}`;
+}
+function matchRow(m){
+  const s=score(m);let tg='';
+  if(m.done&&ours(m)){const my=m.home===US?s.h:s.a,op=m.home===US?s.a:s.h;tg=my>op?'<span class="tag w">승</span>':my<op?'<span class="tag l">패</span>':'<span class="tag">무</span>'}
+  else if(!m.done)tg='<span class="tag p">예정</span>';
+  const show=m.done||s.h||s.a;
+  const ln=(t,v,o)=>`<div class="ln${t===US?' us':''}${m.done&&v<o?' lo':''}"><span>${esc(t)}</span>${show?`<b>${v}</b>`:''}</div>`;
+  return `<div class="m" data-a="openMatch" data-id="${m.id}"><div class="dt">${fd(m.date)}</div><div class="tm">${ln(m.home,s.h,s.a)}${ln(m.away,s.a,s.h)}</div>${tg}</div>`;
 }
 function vMatches(){
   const ms=[...S.matches].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const up=ms.filter(m=>!m.done),dn=ms.filter(m=>m.done).reverse();
-  const row=m=>{const s=score(m);let tg='';
-    if(m.done&&(m.home===US||m.away===US)){const my=m.home===US?s.h:s.a,op=m.home===US?s.a:s.h;tg=my>op?'<span class="tag w">승</span>':my<op?'<span class="tag l">패</span>':'<span class="tag dr">무</span>'}
-    return `<div class="m" data-a="openMatch" data-id="${m.id}"><div class="dt">${fd(m.date)}</div><div class="tm"><span>${esc(m.home)}</span><span class="sc">${m.done||s.h||s.a?`${s.h} : ${s.a}`:'vs'}</span><span>${esc(m.away)}</span></div>${tg||(m.done?'':'<span class="tag">예정</span>')}</div>`};
-  return `<div class="row rw" style="margin-bottom:12px"><button class="b" data-a="newMatch">＋ 경기 일정 추가</button></div>
-  <div class="card"><h2>예정·진행 경기</h2>${up.length?up.map(row).join(''):'<div class="empty">예정된 경기가 없습니다.</div>'}</div>
-  <div class="card"><h2>종료된 경기</h2>${dn.length?dn.map(row).join(''):'<div class="empty">아직 종료된 경기가 없습니다.</div>'}</div>`;
+  return `<button class="b full rw" style="margin-bottom:12px" data-a="newMatch">${ic('plus')}경기 추가</button>
+  <div class="card"><h2>예정 경기</h2>${up.length?up.map(matchRow).join(''):'<div class="empty">예정된 경기가 없습니다.</div>'}</div>
+  <div class="card"><h2>지난 경기</h2>${dn.length?dn.map(matchRow).join(''):'<div class="empty">종료된 경기가 없습니다.</div>'}</div>`;
 }
 function vStats(){
   const st=pstats();
   const key={goals:x=>[x.g,x.a],assists:x=>[x.a,x.g],points:x=>[x.g+x.a,x.g]}[sub];
   const arr=st.filter(x=>x.g||x.a).sort((x,y)=>{const a=key(x),b=key(y);return b[0]-a[0]||b[1]-a[1]||(P(x.id)?.no-P(y.id)?.no)});
   let rk=0,prev=null;
-  return `<div class="seg">${[['goals','득점'],['assists','어시스트'],['points','공격P']].map(([k,l])=>`<button class="${sub===k?'on':''}" data-a="sub" data-k="${k}">${l}</button>`).join('')}</div>
-  <div class="card">${arr.length?`<table><tr><th class="rk">#</th><th class="l">선수</th><th>골</th><th>어시</th><th>P</th></tr>
+  return `<div class="seg">${[['goals','득점'],['assists','어시스트'],['points','공격포인트']].map(([k,l])=>`<button class="${sub===k?'on':''}" data-a="sub" data-k="${k}">${l}</button>`).join('')}</div>
+  <div class="card">${arr.length?`<table><tr><th class="rk">#</th><th class="l">선수</th><th>골</th><th>어시</th><th>포인트</th></tr>
   ${arr.map((x,i)=>{const v=key(x).join('-');if(v!==prev){rk=i+1;prev=v}return `<tr><td class="rk">${rk}</td><td class="l"><span class="num">${P(x.id).no}</span>${esc(P(x.id).name)}</td><td>${x.g}</td><td>${x.a}</td><td><b>${x.g+x.a}</b></td></tr>`}).join('')}</table>
-  <div class="row mt"><button class="g" data-a="copyScorers">📋 기록 복사 (단톡용)</button></div>`:'<div class="empty">아직 기록된 골이 없습니다.<br>일정 탭에서 경기를 열어 골을 기록하세요.</div>'}</div>`;
+  <button class="g full mt" data-a="copyScorers">${ic('copy')}기록 복사</button>`:'<div class="empty"><b>기록된 골이 없습니다</b>일정에서 경기를 열어 골을 기록하면 여기에 쌓입니다.</div>'}</div>`;
 }
 function vRoster(){
   const st=Object.fromEntries(pstats().map(x=>[x.id,x]));
   const pl=[...S.players].sort((a,b)=>a.no-b.no);
-  return `<div class="card"><h2>선수단 (${pl.length}명)</h2><table><tr><th>No</th><th class="l">이름</th><th>골</th><th>어시</th><th></th></tr>
-  ${pl.map(p=>`<tr><td><span class="num">${p.no}</span></td><td class="l">${esc(p.name)}</td><td>${st[p.id].g}</td><td>${st[p.id].a}</td><td><button class="g sm rw" data-a="editPlayer" data-id="${p.id}">수정</button></td></tr>`).join('')}</table>
-  <div class="row mt rw"><button class="b" data-a="addPlayer">＋ 선수 추가</button></div></div>`;
+  return `<div class="card"><div class="hd"><h2>선수단</h2><span class="cap">${pl.length}명</span></div><table><tr><th class="l">번호</th><th class="l">이름</th><th>골</th><th>어시</th><th class="rw"></th></tr>
+  ${pl.map(p=>`<tr><td class="l"><span class="num">${p.no}</span></td><td class="l">${esc(p.name)}</td><td>${st[p.id].g}</td><td>${st[p.id].a}</td><td class="rw" style="text-align:right"><button class="g sm" data-a="editPlayer" data-id="${p.id}">수정</button></td></tr>`).join('')}</table>
+  <button class="b full mt rw" data-a="addPlayer">${ic('plus')}선수 추가</button></div>`;
 }
 /* ---------- 예측(배팅) ---------- */
 const MK=[['top','최다 득점자'],['first','첫 골 주인공'],['res','경기 결과']];
-const MKI={top:'👑',first:'⚡',res:'⚔️'};
+const MKI={top:'crown',first:'bolt',res:'board'};
 const RES={W:'승',D:'무',L:'패'};
 const ours=m=>m.home===US||m.away===US;
 const closeAt=m=>new Date((m.date||'2000-01-01')+'T00:00:00+09:00');      // 경기 당일 0시(한국시간) 마감
@@ -241,144 +389,149 @@ function betBoard(){
   return Object.values(T).sort((a,b)=>b.pts-a.pts||b.hit-a.hit||a.n.localeCompare(b.n));
 }
 const dlTxt=m=>{const d=new Date(closeAt(m).getTime()-864e5+9*36e5);const t=new Date(d.toISOString().slice(0,10)+'T00:00:00');return `${t.getMonth()+1}/${t.getDate()}(${'일월화수목금토'[t.getDay()]}) 밤 12시 마감`};
-const pickTxt=(k,v)=>!v?'-':k==='res'?RES[v]:pn(v);
+const pickTxt=(k,v)=>!v?'선택 안 함':k==='res'?RES[v]:pn(v);
+const mkHead=(k,l,right='')=>`<div class="tl-h"><span class="ic">${ic(MKI[k])}</span>${l}${right}</div>`;
 // 항목별 집계: [[선택값, 표수, [이름...]], ...] 많은 순
 function tally(m,k){const c={};betsOf(m).forEach(b=>{if(b[k]){(c[b[k]]=c[b[k]]||[]).push(b.n)}});return Object.entries(c).map(([v,ns])=>[v,ns.length,ns]).sort((a,b)=>b[1]-a[1])}
 function tallyHTML(m){
+  if(!betsOf(m).length)return '<div class="tl"><div class="note">아직 투표가 없습니다.</div></div>';
   const ans=m.done?answers(m):null,showNames=isAdmin()||m.done;   // 투표자 이름: 관리자는 항상, 팀원은 경기 종료 후에만
   return MK.map(([k,l])=>{
-    const t=tally(m,k),tot=t.reduce((s,x)=>s+x[1],0);
-    return `<div class="tl mk-${k}"><div class="tl-h"><span class="ic">${MKI[k]}</span>${l}${ans?` <small>· 정답 ${ans[k].length?ans[k].map(v=>esc(pickTxt(k,v))).join(', '):'없음'}</small>`:''}<small style="margin-left:auto">${tot}표</small></div>
-    ${t.length?t.map(([v,n,ns])=>{const ok=ans&&ans[k].includes(v);return `<div class="tl-r"><div class="tl-l"><span>${ok?'✅ ':''}${esc(pickTxt(k,v))}</span><b>${n}표</b></div><div class="bar${ok?' ok':''}"><i style="width:${Math.round(n/tot*100)}%"></i></div>${showNames?`<div class="tl-n">${ns.map(esc).join(', ')}</div>`:''}</div>`}).join(''):'<div class="note">아직 투표가 없습니다.</div>'}</div>`;
+    const t=tally(m,k),tot=t.reduce((s,x)=>s+x[1],0),hit=ans&&t.some(([v])=>ans[k].includes(v));
+    return `<div class="tl mk-${k}">${mkHead(k,l,`<span class="cnt">${tot}표</span>`)}
+    ${t.length?t.map(([v,n,ns])=>{const ok=ans&&ans[k].includes(v);return `<div class="tl-r"><div class="tl-l"><span>${esc(pickTxt(k,v))} ${ok?'<span class="tag k">정답</span>':''}</span><b>${n}표</b></div><div class="bar"><i style="width:${Math.round(n/tot*100)}%"></i></div>${showNames?`<div class="tl-n">${ns.map(esc).join(', ')}</div>`:''}</div>`}).join(''):'<div class="note">아직 투표가 없습니다.</div>'}
+    ${ans&&!hit?`<div class="note" style="margin-top:8px">정답 ${ans[k].length?esc(ans[k].map(v=>pickTxt(k,v)).join(', ')):'없음'}, 맞춘 사람 없음</div>`:''}</div>`;
   }).join('');
 }
 function votersLine(m){
   const voted=new Set(betsOf(m).map(b=>b.n)),all=[...S.players].sort((a,b)=>a.no-b.no).map(p=>p.name);
   const not=all.filter(n=>!voted.has(n));
-  return `<div class="note" style="margin-top:6px">투표 <b style="color:var(--tx)">${voted.size}</b> / ${all.length}명${isAdmin()&&not.length&&!m.done?` · 미참여: ${not.map(esc).join(', ')}`:''}${!isAdmin()&&!m.done?' · 누가 투표했는지는 경기 종료 후 공개':''}</div>`;
+  return `<div class="note">${all.length}명 중 <b style="color:var(--black)">${voted.size}명</b> 투표</div>
+  ${!m.done?(isAdmin()?(not.length?`<div class="note" style="margin-top:4px">아직 안 한 사람: ${not.map(esc).join(', ')}</div>`:''):'<div class="cap" style="margin-top:2px">누가 투표했는지는 경기가 끝나면 공개됩니다.</div>'):''}`;
 }
 function vBets(){
   const ms=S.matches.filter(ours).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   const open=ms.filter(isOpen),wait=ms.filter(m=>!m.done&&!isOpen(m)),done=ms.filter(m=>m.done).reverse().slice(0,5);
   const bd=betBoard();let rk=0,pv=null;
-  const opp=m=>esc(m.home===US?m.away:m.home);
   const block=(m,state)=>{const mine=myBet(m);
-    return `<div class="card"><div class="row" style="align-items:flex-start"><div style="flex:3"><h2 style="margin:0">vs ${opp(m)}</h2><div class="note">${fds(m.date)} 경기 · ${state==='open'?dlTxt(m):'투표 마감 · 결과 대기'}</div></div>
-      ${state==='open'?(isAdmin()?`<span class="tag" style="flex:0 0 auto">관리자 · 투표 불가</span>`:mine?`<span class="tag w" style="flex:0 0 auto">✔ 투표 완료</span>`:`<button class="b sm" style="flex:0 0 auto" data-a="openBet" data-id="${m.id}">투표하기</button>`):''}</div>
-      ${mine&&!isAdmin()?`<div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">${MK.filter(([k])=>mine[k]).map(([k,l])=>`<span class="tag">${MKI[k]} ${l}: ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div>`:''}
-      ${votersLine(m)}
+    const act=state!=='open'?'<span class="tag">투표 마감</span>':isAdmin()?'<span class="tag">관리자 투표 불가</span>':mine?`<span class="tag w">${ic('check')}투표 완료</span>`:`<button class="b sm" data-a="openBet" data-id="${m.id}">투표</button>`;
+    return `<div class="card"><div class="mbox"><div><h2>vs ${esc(opp(m))}</h2><div class="note">${fds(m.date)} 경기</div><div class="cap">${state==='open'?dlTxt(m):'결과를 기다리는 중'}</div></div><div style="flex:0 0 auto">${act}</div></div>
+      ${mine&&!isAdmin()?`<div class="tags mt">${MK.filter(([k])=>mine[k]).map(([k,l])=>`<span class="tag p">내 선택 ${l} ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div>`:''}
+      <div class="mt">${votersLine(m)}</div>
       <div class="mt">${tallyHTML(m)}</div>
-      ${isAdmin()?`<div class="row mt"><button class="g sm" data-a="openBet" data-id="${m.id}">관리 (투표 초기화)</button></div>`:''}</div>`};
-  return `${open.length?`<div class="note" style="margin:0 2px 8px">🎯 투표 중인 경기 · 한 번 투표하면 수정할 수 없어요</div>${open.map(m=>block(m,'open')).join('')}`:'<div class="card empty">투표할 수 있는 경기가 없습니다.<br><small>관리자가 경기 일정을 등록하면 경기 전날 밤 12시까지 투표할 수 있어요.</small></div>'}
+      ${isAdmin()?`<button class="g sm mt" data-a="openBet" data-id="${m.id}">투표 관리</button>`:''}</div>`};
+  return `${open.length?open.map(m=>block(m,'open')).join(''):'<div class="card empty"><b>투표할 경기가 없습니다</b>경기 일정이 등록되면 경기 전날 밤 12시까지 투표할 수 있습니다.</div>'}
   ${wait.map(m=>block(m,'wait')).join('')}
-  <div class="card"><h2>🏅 예측 랭킹</h2>${bd.length?`<table><tr><th class="rk">#</th><th class="l">이름</th><th>적중</th><th>포인트</th></tr>${bd.map((x,i)=>{if(x.pts!==pv){rk=i+1;pv=x.pts}return `<tr class="${x.n===getMe()?'us':''}"><td class="rk">${rk}</td><td class="l">${esc(x.n)}</td><td>${x.hit}/${x.try}</td><td><b>${x.pts}</b></td></tr>`}).join('')}</table>`:'<div class="empty">관리자가 경기를 종료하면 예측 결과가 쌓입니다.</div>'}
-  <div class="note mt">정답 포인트 = 10 × (그 항목 투표 인원 ÷ 정답자 수). 혼자 맞추면 크게 받아요.</div></div>
-  ${done.length?`<div class="card"><h2>📜 지난 경기 예측 결과</h2>${done.map(m=>`<div class="ev" data-a="openBet" data-id="${m.id}" style="cursor:pointer"><span><b>vs ${opp(m)}</b> <small style="color:var(--sub)">${fds(m.date)} · ${score(m).h}:${score(m).a}</small></span><button class="g sm">결과 보기</button></div>`).join('')}</div>`:''}`;
+  <div class="card"><h2>예측 랭킹</h2>${bd.length?`<table><tr><th class="rk">#</th><th class="l">이름</th><th>적중</th><th>포인트</th></tr>${bd.map((x,i)=>{if(x.pts!==pv){rk=i+1;pv=x.pts}return `<tr class="${x.n===getMe()?'us':''}"><td class="rk">${rk}</td><td class="l">${esc(x.n)}</td><td>${x.hit}/${x.try}</td><td><b>${x.pts}</b></td></tr>`}).join('')}</table>`:'<div class="empty">경기가 끝나면 예측 결과가 쌓입니다.</div>'}
+  <div class="cap mt">정답 포인트는 10 × (그 항목 투표 인원 ÷ 정답자 수)입니다. 혼자 맞히면 크게 받습니다.</div></div>
+  ${done.length?`<div class="card"><h2>지난 경기 예측</h2>${done.map(m=>`<div class="ev" data-a="openBet" data-id="${m.id}" style="cursor:pointer"><span>vs ${esc(opp(m))}<small>${fds(m.date)} 경기, ${score(m).h} : ${score(m).a}</small></span><button class="g sm">결과</button></div>`).join('')}</div>`:''}`;
 }
 function vBetSheet(m){
   const open=isOpen(m),bs=betsOf(m),mine=myBet(m),me=getMe();
   const pl=[...S.players].sort((a,b)=>a.no-b.no),st=m.done?settle(m):{};
   const sel=k=>k==='res'
-    ?`<div class="seg" style="margin:6px 0 0">${[['','안 함'],['W','승'],['D','무'],['L','패']].map(([v,l])=>`<button class="${v===''?'on':''}" data-a="pickRes" data-v="${v}">${l}</button>`).join('')}</div><input type="hidden" id="bres" value="">`
+    ?`<div class="seg">${[['','안 함'],['W','승'],['D','무'],['L','패']].map(([v,l])=>`<button class="${v===''?'on':''}" data-a="pickRes" data-v="${v}">${l}</button>`).join('')}</div><input type="hidden" id="bres" value="">`
     :`<select id="b${k}"><option value="">선택 안 함</option>${pl.map(p=>`<option value="${p.id}">#${p.no} ${esc(p.name)}</option>`).join('')}</select>`;
   const form=open&&!mine&&!isAdmin();
+  const sub=m.done?`${fds(m.date)} 경기 종료, ${score(m).h} : ${score(m).a}`:open?`${fds(m.date)} 경기, ${dlTxt(m)}`:`${fds(m.date)} 경기, 투표 마감`;
   return `<div class="sheet" data-a="closeSheet"><div>
-    <div class="row"><h2 style="margin:0;flex:3">🎯 ${esc(m.home)} vs ${esc(m.away)}</h2><button class="g sm" data-a="closeSheet" style="flex:0 0 auto">닫기</button></div>
-    <div class="note" style="margin:4px 0 10px">${fds(m.date)} · ${m.done?`경기 종료 ${score(m).h}:${score(m).a}`:open?dlTxt(m):'투표 마감 · 결과 대기'}</div>
-    ${form?`${me?`<div class="note">투표자: <b style="color:var(--tx)">${esc(me)}</b></div>`:`<label>내 이름</label><select id="bname"><option value="">이름을 선택하세요</option>${pl.map(p=>`<option>${esc(p.name)}</option>`).join('')}</select>`}
-      ${MK.map(([k,l])=>`<div class="tl mk-${k}"><div class="tl-h"><span class="ic">${MKI[k]}</span>${l}</div>${sel(k)}</div>`).join('')}
-      <div class="note mt" style="color:var(--acc)">⚠️ 한 번 투표하면 수정할 수 없어요. 신중하게 골라주세요.</div>
-      <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="saveBet">투표하기</button></div>
-      <h2 class="mt" style="margin-top:18px">📊 현재 집계</h2>${votersLine(m)}<div class="mt">${tallyHTML(m)}</div>`
-    :`${mine&&!isAdmin()?`<div class="card"><h2>내 투표 ${open?'<small style="color:var(--sub);font-weight:400">· 수정 불가</small>':''}</h2><div style="display:flex;gap:4px;flex-wrap:wrap">${MK.map(([k,l])=>`<span class="tag">${l}: ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div></div>`:''}
-      <h2>📊 집계</h2>${votersLine(m)}<div class="mt">${tallyHTML(m)}</div>
-      ${m.done&&Object.keys(st).length?`<div class="card mt"><h2>이 경기 포인트</h2><table>${Object.entries(st).sort((a,b)=>b[1].pts-a[1].pts).map(([n,o])=>`<tr><td class="l">${esc(n)}</td><td>${o.hit}/${o.try} 적중</td><td><b>+${o.pts}</b></td></tr>`).join('')}</table></div>`:''}`}
-    ${isAdmin()&&bs.length?`<div class="card mt"><h2>관리자 · 투표 초기화</h2><div class="note">잘못 투표한 팀원의 투표를 지우면 그 사람이 다시 투표할 수 있어요.</div>${bs.map(b=>`<div class="ev"><span>${esc(b.n)}</span><button class="d sm" data-a="resetBet" data-n="${esc(b.n)}">초기화</button></div>`).join('')}</div>`:''}
+    <div class="sh-h"><div><h2>${esc(m.home)} vs ${esc(m.away)}</h2><div class="note">${sub}</div></div><button class="g sm" data-a="closeSheet">닫기</button></div>
+    ${form?`${me?`<div class="note" style="margin-bottom:12px">${esc(me)} 님의 예측</div>`:`<label style="margin-top:0">내 이름</label><select id="bname" style="margin-bottom:12px"><option value="">이름 선택</option>${pl.map(p=>`<option>${esc(p.name)}</option>`).join('')}</select>`}
+      ${MK.map(([k,l])=>`<div class="tl mk-${k}">${mkHead(k,l)}${sel(k)}</div>`).join('')}
+      <div class="warn">${ic('alert')}<span>투표는 한 번만 할 수 있고, 저장한 뒤에는 바꿀 수 없습니다.</span></div>
+      <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="saveBet">투표</button></div>
+      <div class="sec">현재 집계</div>${votersLine(m)}<div class="mt">${tallyHTML(m)}</div>`
+    :`${mine&&!isAdmin()?`<div class="card"><div class="hd"><h2>내 예측</h2>${open?`<span class="tag">${ic('lock')}수정 불가</span>`:''}</div><div class="tags">${MK.map(([k,l])=>`<span class="tag p">${l} ${esc(pickTxt(k,mine[k]))}</span>`).join('')}</div></div>`:''}
+      <div class="sec" style="margin-top:8px">집계</div>${votersLine(m)}<div class="mt">${tallyHTML(m)}</div>
+      ${m.done&&Object.keys(st).length?`<div class="card mt"><h2>이 경기 포인트</h2><table>${Object.entries(st).sort((a,b)=>b[1].pts-a[1].pts).map(([n,o])=>`<tr><td class="l">${esc(n)}</td><td>${o.hit}/${o.try} 적중</td><td style="text-align:right"><b>+${o.pts}</b></td></tr>`).join('')}</table></div>`:''}`}
+    ${isAdmin()&&bs.length?`<div class="card mt"><h2>투표 초기화</h2><div class="note">잘못 투표한 팀원의 투표를 지우면 다시 투표할 수 있습니다.</div>${bs.map(b=>`<div class="ev"><span>${esc(b.n)}</span><button class="d sm" data-a="resetBet" data-n="${esc(b.n)}">초기화</button></div>`).join('')}</div>`:''}
   </div></div>`;
 }
 function vMore(){
-  return `<div class="card"><h2>대경리그 참가팀</h2>
-  ${S.teams.map(t=>`<div class="ev"><span>${esc(t)}${t===US?' <span class="tag">우리팀</span>':''}</span>${t===US?'':`<button class="d sm rw" data-a="delTeam" data-t="${esc(t)}">삭제</button>`}</div>`).join('')}
-  <div class="row mt rw"><button class="b" data-a="addTeam">＋ 팀 추가</button></div></div>
-  <div class="card"><h2>내 계정</h2>${isAdmin()?`<div class="note">✏️ 관리자로 로그인됨 (${esc(user.email)})<br>입력한 기록이 모든 팀원 폰에 실시간으로 반영됩니다.</div>`:`<div class="note">👤 ${esc(getMe()||'팀원')} — 보기 전용<br>기록 입력·수정은 관리자만 할 수 있습니다.</div>`}<div class="row mt"><button class="g" data-a="logout">로그아웃</button></div></div>
-  ${isAdmin()&&serverEmpty&&LOCAL0.matches.length?`<div class="card" style="border-color:var(--acc)"><h2>⚠️ 서버에 저장되지 않은 기록</h2><div class="note">이 폰에만 남아 있는 기록이 있습니다 (팀 ${LOCAL0.teams.length}개 · 경기 ${LOCAL0.matches.length}개). 서버에 올려야 팀원 폰에도 보입니다.</div><div class="row mt"><button class="b" data-a="uploadLocal">서버에 올리기</button></div></div>`:''}
-  ${isAdmin()&&legacy()?`<div class="card"><h2>이 폰의 이전 기록</h2><div class="note">공유 기능 이전에 이 폰에만 저장된 기록(경기 ${legacy().matches.length}개)이 있습니다. 공용 기록으로 올리면 현재 공용 기록을 덮어씁니다.</div><div class="row mt"><button class="b" data-a="migrate">공용 기록으로 올리기</button><button class="g" data-a="dropLegacy">무시</button></div></div>`:''}
-  <div class="card"><h2>데이터 백업</h2><div class="note">기록은 공용 서버(Firebase)에 저장됩니다. 만일을 위해 시즌 중간중간 백업 파일을 받아두세요.</div>
-  <div class="row mt"><button class="g" data-a="export">백업 받기</button><button class="g rw" data-a="import">백업 불러오기</button></div>
+  return `<div class="card"><h2>내 계정</h2>${isAdmin()?`<div class="note"><b style="color:var(--black)">관리자</b> ${esc(user.email)}</div><div class="cap" style="margin-top:4px">입력한 기록은 모든 팀원에게 바로 반영됩니다.</div>`:`<div class="note"><b style="color:var(--black)">${esc(getMe()||'팀원')}</b> 보기 전용</div><div class="cap" style="margin-top:4px">기록 입력과 수정은 관리자만 할 수 있습니다.</div>`}<button class="g full mt" data-a="logout">로그아웃</button></div>
+  ${isAdmin()&&serverEmpty&&LOCAL0.matches.length?`<div class="card"><div class="warn" style="margin-top:0">${ic('alert')}<span>서버에 저장되지 않은 기록이 이 폰에만 있습니다. 팀 ${LOCAL0.teams.length}개, 경기 ${LOCAL0.matches.length}개.</span></div><button class="b full mt" data-a="uploadLocal">서버에 올리기</button></div>`:''}
+  ${isAdmin()&&legacy()?`<div class="card"><h2>이 폰의 이전 기록</h2><div class="note">공유 기능 이전에 이 폰에만 저장된 경기 ${legacy().matches.length}개가 있습니다. 올리면 현재 공용 기록을 덮어씁니다.</div><div class="row mt"><button class="g" data-a="dropLegacy">무시</button><button class="b" data-a="migrate">올리기</button></div></div>`:''}
+  <div class="card"><div class="hd"><h2>대경리그 참가팀</h2><span class="cap">${S.teams.length}팀</span></div>
+  <div>${S.teams.map(t=>`<div class="ev"><span>${esc(t)} ${t===US?'<span class="tag p">우리 팀</span>':''}</span>${t===US?'':`<button class="d sm rw" data-a="delTeam" data-t="${esc(t)}">삭제</button>`}</div>`).join('')}</div>
+  <button class="b full mt rw" data-a="addTeam">${ic('plus')}팀 추가</button></div>
+  <div class="card"><h2>데이터 백업</h2><div class="note">기록은 공용 서버에 저장됩니다. 시즌 중간에 한 번씩 백업 파일을 받아 두세요.</div>
+  <div class="row mt"><button class="g" data-a="export">백업 받기</button><button class="g rw" data-a="import">불러오기</button></div>
   <input type="file" id="file" accept=".json,application/json" style="display:none"></div>
-  <div class="card rw"><h2>초기화</h2><button class="d" data-a="reset">모든 기록 삭제</button></div>`;
+  <div class="card rw"><h2>초기화</h2><div class="note">모든 팀원의 경기와 기록이 지워집니다.</div><button class="d full mt" data-a="reset">모든 기록 삭제</button></div>`;
 }
 
-/* ---------- match sheet ---------- */
+/* ---------- 시트 ---------- */
 function vSheet(){
   if(!sheet)return'';
   if(sheet.type==='match'){
     const m=S.matches.find(x=>x.id===sheet.id);if(!m){sheet=null;return''}
-    const s=score(m),mine=m.home===US||m.away===US,opts=(sel)=>[...S.players].sort((a,b)=>a.no-b.no).map(p=>`<option value="${p.id}" ${sel===p.id?'selected':''}>#${p.no} ${esc(p.name)}</option>`).join('');
-    const stepper=(k,v)=>`<div class="step"><button class="rw" data-a="step" data-k="${k}" data-d="-1">−</button><b style="min-width:30px;font-size:30px">${v}</b><button class="rw" data-a="step" data-k="${k}" data-d="1">＋</button></div>`;
+    const s=score(m),mine=ours(m),opts=()=>[...S.players].sort((a,b)=>a.no-b.no).map(p=>`<option value="${p.id}">#${p.no} ${esc(p.name)}</option>`).join('');
+    const stepper=(k,v)=>`<div class="step"><button class="rw" data-a="step" data-k="${k}" data-d="-1" aria-label="1 빼기">${ic('minus')}</button><b>${v}</b><button class="rw" data-a="step" data-k="${k}" data-d="1" aria-label="1 더하기">${ic('plus')}</button></div>`;
     return `<div class="sheet" data-a="closeSheet"><div>
-      <div class="row"><h2 style="margin:0;flex:3">${esc(m.home)} vs ${esc(m.away)}</h2><button class="g sm" data-a="closeSheet" style="flex:0 0 auto">닫기</button></div>
-      <div style="color:var(--sub);font-size:13px;margin:4px 0 8px">${fds(m.date)} ${m.done?'· 경기 종료':'· 진행/예정'}</div>
-      <div class="big"><span>${s.h}</span><span style="color:var(--sub)">:</span><span>${s.a}</span></div>
-      ${mine?`<div class="row" style="margin-bottom:10px"><button class="g" data-a="openBet" data-id="${m.id}">🎯 예측 ${isOpen(m)&&!isAdmin()?'하기':'보기'} (${betsOf(m).length}명 참여)</button></div>`:''}
+      <div class="sh-h"><div><h2>${esc(m.home)} vs ${esc(m.away)}</h2><div class="note">${fds(m.date)} ${m.done?'경기 종료':'경기 예정'}</div></div><button class="g sm" data-a="closeSheet">닫기</button></div>
+      <div class="card"><div class="big"><div><b>${s.h}</b><span>${esc(m.home)}</span></div><i>:</i><div><b>${s.a}</b><span>${esc(m.away)}</span></div></div>
+      ${mine?`<button class="g full" data-a="openBet" data-id="${m.id}">${ic('vote')}예측 보기, ${betsOf(m).length}명 참여</button>`:''}</div>
       ${mine?`
-        <div class="card"><h2>${US} 득점 기록</h2>
-        ${(m.ev||[]).length?m.ev.map((e,i)=>`<div class="ev"><span>🥅 <b>${esc(pn(e.s))}</b>${e.a?` <small style="color:var(--sub)">어시 ${esc(pn(e.a))}</small>`:''}${e.min?` <small style="color:var(--sub)">· ${esc(e.min)}'</small>`:''}</span><button class="d sm rw" data-a="delEv" data-i="${i}">삭제</button></div>`).join(''):'<div class="empty" style="padding:10px">기록된 골이 없습니다.</div>'}
+        <div class="card"><div class="hd"><h2>울브스 득점</h2><span class="cap">입력 순서가 득점 순서</span></div>
+        ${(m.ev||[]).length?m.ev.map((e,i)=>`<div class="ev"><span class="gi">${i+1}</span><span>${esc(pn(e.s))}${e.a||e.min?`<small>${e.a?`어시스트 ${esc(pn(e.a))}`:'단독'}${e.min?`, ${esc(e.min)}분`:''}</small>`:''}</span><button class="d sm rw" data-a="delEv" data-i="${i}">삭제</button></div>`).join(''):'<div class="empty" style="padding:12px">기록된 골이 없습니다.</div>'}
         <div class="rw"><label>득점자</label><select id="gs">${opts()}</select>
-        <label>어시스트 (없으면 비워두기)</label><select id="ga"><option value="">없음 / 단독</option>${opts()}</select>
+        <label>어시스트</label><select id="ga"><option value="">없음 (단독)</option>${opts()}</select>
         <label>시간 (분, 선택)</label><input id="gm" type="number" inputmode="numeric" min="1" max="99" placeholder="예: 12">
-        <button class="b mt" style="width:100%" data-a="addEv">🥅 골 추가</button></div></div>
-        <div class="card"><h2>상대팀(${esc(m.home===US?m.away:m.home)}) 득점</h2>${stepper('opp',m.opp||0)}</div>`
+        <button class="b full mt" data-a="addEv">${ic('plus')}골 추가</button></div></div>
+        <div class="card"><h2>${esc(opp(m))} 득점</h2>${stepper('opp',m.opp||0)}</div>`
       :`<div class="card"><h2>${esc(m.home)} 득점</h2>${stepper('hs',m.hs||0)}<h2 class="mt">${esc(m.away)} 득점</h2>${stepper('as',m.as||0)}</div>`}
-      <div class="row mt rw"><button class="${m.done?'g':'b'}" data-a="toggleDone">${m.done?'종료 취소':'✔ 경기 종료 (순위 반영)'}</button><button class="d" data-a="delMatch">경기 삭제</button></div>
+      <div class="row mt rw"><button class="d" data-a="delMatch">경기 삭제</button><button class="${m.done?'g':'b'}" data-a="toggleDone">${m.done?'종료 취소':'경기 종료'}</button></div>
+      ${!m.done?'<div class="cap rw" style="margin-top:8px;text-align:center">경기 종료를 누르면 순위와 예측 포인트가 반영됩니다.</div>':''}
     </div></div>`;
   }
   if(sheet.type==='newMatch'){
     const to=S.teams.map(t=>`<option>${esc(t)}</option>`).join('');
-    return `<div class="sheet" data-a="closeSheet"><div><h2>경기 일정 추가</h2>
-      <label>날짜</label><input id="nd" type="date" value="${new Date().toISOString().slice(0,10)}">
+    return `<div class="sheet" data-a="closeSheet"><div>
+      <div class="sh-h"><div><h2>경기 추가</h2></div><button class="g sm" data-a="closeSheet">닫기</button></div>
+      <div class="sh-form"><label>날짜</label><input id="nd" type="date" value="${new Date().toISOString().slice(0,10)}">
       <label>홈팀</label><select id="nh">${to}</select>
-      <label>원정팀</label><select id="na">${S.teams.map((t,i)=>`<option ${i===1?'selected':''}>${esc(t)}</option>`).join('')}</select>
+      <label>원정팀</label><select id="na">${S.teams.map((t,i)=>`<option ${i===1?'selected':''}>${esc(t)}</option>`).join('')}</select></div>
+      <div class="cap" style="margin-top:8px">예측 투표는 경기 전날 밤 12시에 마감됩니다. 일정은 미리 등록해 주세요.</div>
       <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="saveMatch">저장</button></div></div></div>`;
   }
   if(sheet.type==='bet'){const m=S.matches.find(x=>x.id===sheet.id);if(!m){sheet=null;return''}return vBetSheet(m)}
   if(sheet.type==='player'){
     const p=sheet.id?P(sheet.id):null;
-    return `<div class="sheet" data-a="closeSheet"><div><h2>${p?'선수 수정':'선수 추가'}</h2>
-      <label>등번호</label><input id="pn" type="number" inputmode="numeric" value="${p?p.no:''}">
-      <label>이름</label><input id="pm" value="${p?esc(p.name):''}">
+    return `<div class="sheet" data-a="closeSheet"><div>
+      <div class="sh-h"><div><h2>${p?'선수 수정':'선수 추가'}</h2></div><button class="g sm" data-a="closeSheet">닫기</button></div>
+      <div class="sh-form"><label>등번호</label><input id="pn" type="number" inputmode="numeric" value="${p?p.no:''}">
+      <label>이름</label><input id="pm" value="${p?esc(p.name):''}"></div>
       <div class="row mt">${p?'<button class="d" data-a="delPlayer">삭제</button>':''}<button class="g" data-a="closeSheet">취소</button><button class="b" data-a="savePlayer">저장</button></div></div></div>`;
   }
   return '';
 }
 
 /* ---------- render ---------- */
-const TABS=[['standings','🏆','순위'],['matches','📅','일정'],['stats','🥅','기록'],['bets','🎯','예측'],['roster','👥','선수단'],['more','⚙️','설정']];
+const TABS=[['standings','trophy','순위'],['matches','cal','일정'],['stats','chart','기록'],['bets','vote','예측'],['roster','people','선수단'],['more','gear','설정']];
 function vLogin(){
   const list=(pubRoster||ROSTER.map(([no,name])=>({no,name}))).slice().sort((a,b)=>a.no-b.no);
   const me=draftName||getMe();
-  return `<div style="text-align:center;padding:26px 0 14px"><div style="font-size:46px">🏒</div><div style="font-size:22px;font-weight:800;margin-top:6px">울브스 대경리그</div><div class="note">팀원 전용 기록 앱</div></div>
+  return `<div class="lg-hero"><b>울브스</b><span>대경리그 기록과 예측</span></div>
   <div class="card">${adminMode?`<h2>관리자 로그인</h2>
     <label>이메일</label><input id="le" type="email" autocomplete="username" inputmode="email" value="${esc(draftEmail)}">
     <label>비밀번호</label><input id="lp" type="password" autocomplete="current-password">
-    <button class="b mt" style="width:100%" data-a="adminLogin">관리자 로그인</button>
-    <div class="row mt"><button class="g" data-a="toggleAdmin">← 팀원 로그인으로</button></div>`
+    <button class="b full mt" data-a="adminLogin">로그인</button>`
   :`<h2>팀원 로그인</h2>
-    <label>이름</label><select id="ln"><option value="">이름을 선택하세요</option>${list.map(p=>`<option value="${esc(p.name)}" ${p.name===me?'selected':''}>#${p.no} ${esc(p.name)}</option>`).join('')}</select>
+    <label>이름</label><select id="ln"><option value="">이름 선택</option>${list.map(p=>`<option value="${esc(p.name)}" ${p.name===me?'selected':''}>#${p.no} ${esc(p.name)}</option>`).join('')}</select>
     <label>팀 비밀번호</label><input id="lp" type="password" autocomplete="current-password">
-    <button class="b mt" style="width:100%" data-a="memberLogin">들어가기</button>
-    <div style="text-align:center;margin-top:14px"><button class="g sm" data-a="toggleAdmin">관리자 로그인</button></div>`}</div>
-  ${sync==='error'?'<div class="card empty">서버에 연결할 수 없습니다. 인터넷 연결을 확인하세요.</div>':''}`;
+    <button class="b full mt" data-a="memberLogin">로그인</button>`}</div>
+  <div style="text-align:center"><button class="linkbtn" data-a="toggleAdmin">${adminMode?'팀원으로 로그인':'관리자로 로그인'}</button></div>
+  ${sync==='error'?'<div class="card empty" style="margin-top:12px"><b>서버에 연결할 수 없습니다</b>인터넷 연결을 확인해 주세요.</div>':''}`;
 }
 function render(){
   if(!user){
-    document.getElementById('app').innerHTML=authReady?vLogin():'<div class="card empty">불러오는 중…</div>';
+    document.getElementById('app').innerHTML=authReady?vLogin():'<div class="card empty">불러오는 중입니다.</div>';
     document.getElementById('nav').innerHTML='';document.body.classList.add('ro');renderStatus();return;
   }
-  const v=loaded?{standings:vStandings,matches:vMatches,stats:vStats,bets:vBets,roster:vRoster,more:vMore}[tab]():'<div class="card empty">기록을 불러오는 중…</div>';
+  const v=loaded?{standings:vStandings,matches:vMatches,stats:vStats,bets:vBets,roster:vRoster,more:vMore}[tab]():'<div class="card empty">기록을 불러오는 중입니다.</div>';
   document.getElementById('app').innerHTML=v+vSheet();
   renderStatus();
-  document.getElementById('nav').innerHTML=TABS.map(([k,i,l])=>`<button class="${tab===k?'on':''}" data-a="tab" data-k="${k}"><b>${i}</b>${l}</button>`).join('');
+  document.getElementById('nav').innerHTML=TABS.map(([k,i,l])=>`<button class="${tab===k?'on':''}" data-a="tab" data-k="${k}" aria-label="${l}">${ic(i)}${l}</button>`).join('');
 }
 
 /* ---------- actions ---------- */
@@ -423,12 +576,12 @@ const A={
     if(confirm(d.t+' 팀을 삭제할까요?')){S.teams=S.teams.filter(t=>t!==d.t);save()}
   },
   copyStand(){
-    const t='🏒 대경리그 순위\n'+standings().map((x,i)=>`${i+1}위 ${x.t} ${x.w}승${x.d}무${x.l}패 (득실${x.gf-x.ga>=0?'+':''}${x.gf-x.ga}) 승점${x.pts}`).join('\n');
+    const t='[대경리그 순위]\n'+standings().map((x,i)=>`${i+1}위 ${x.t} ${x.w}승${x.d}무${x.l}패 (득실${x.gf-x.ga>=0?'+':''}${x.gf-x.ga}) 승점${x.pts}`).join('\n');
     copy(t);
   },
   copyScorers(){
     const st=pstats().filter(x=>x.g||x.a).sort((a,b)=>b.g-a.g||b.a-a.a);
-    copy('🥅 울브스 기록\n'+st.map((x,i)=>`${i+1}. #${P(x.id).no} ${P(x.id).name} ${x.g}골 ${x.a}어시`).join('\n'));
+    copy('[울브스 개인 기록]\n'+st.map((x,i)=>`${i+1}. #${P(x.id).no} ${P(x.id).name} ${x.g}골 ${x.a}어시`).join('\n'));
   },
   export(){
     const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}),a=document.createElement('a');
