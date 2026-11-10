@@ -239,17 +239,17 @@ const pickTxt=(k,v)=>!v?'-':k==='res'?RES[v]:pn(v);
 // 항목별 집계: [[선택값, 표수, [이름...]], ...] 많은 순
 function tally(m,k){const c={};betsOf(m).forEach(b=>{if(b[k]){(c[b[k]]=c[b[k]]||[]).push(b.n)}});return Object.entries(c).map(([v,ns])=>[v,ns.length,ns]).sort((a,b)=>b[1]-a[1])}
 function tallyHTML(m){
-  const ans=m.done?answers(m):null;
+  const ans=m.done?answers(m):null,showNames=isAdmin()||m.done;   // 투표자 이름: 관리자는 항상, 팀원은 경기 종료 후에만
   return MK.map(([k,l])=>{
     const t=tally(m,k),tot=t.reduce((s,x)=>s+x[1],0);
     return `<div class="tl"><div class="tl-h">${l}${ans?` <small>· 정답 ${ans[k].length?ans[k].map(v=>esc(pickTxt(k,v))).join(', '):'없음'}</small>`:''}<small style="float:right">${tot}표</small></div>
-    ${t.length?t.map(([v,n,ns])=>{const ok=ans&&ans[k].includes(v);return `<div class="tl-r"><div class="tl-l"><span>${ok?'✅ ':''}${esc(pickTxt(k,v))}</span><b>${n}표</b></div><div class="bar${ok?' ok':''}"><i style="width:${Math.round(n/tot*100)}%"></i></div><div class="tl-n">${ns.map(esc).join(', ')}</div></div>`}).join(''):'<div class="note">아직 투표가 없습니다.</div>'}</div>`;
+    ${t.length?t.map(([v,n,ns])=>{const ok=ans&&ans[k].includes(v);return `<div class="tl-r"><div class="tl-l"><span>${ok?'✅ ':''}${esc(pickTxt(k,v))}</span><b>${n}표</b></div><div class="bar${ok?' ok':''}"><i style="width:${Math.round(n/tot*100)}%"></i></div>${showNames?`<div class="tl-n">${ns.map(esc).join(', ')}</div>`:''}</div>`}).join(''):'<div class="note">아직 투표가 없습니다.</div>'}</div>`;
   }).join('');
 }
 function votersLine(m){
   const voted=new Set(betsOf(m).map(b=>b.n)),all=[...S.players].sort((a,b)=>a.no-b.no).map(p=>p.name);
   const not=all.filter(n=>!voted.has(n));
-  return `<div class="note" style="margin-top:6px">투표 <b style="color:var(--tx)">${voted.size}</b> / ${all.length}명${not.length&&!m.done?` · 미참여: ${not.map(esc).join(', ')}`:''}</div>`;
+  return `<div class="note" style="margin-top:6px">투표 <b style="color:var(--tx)">${voted.size}</b> / ${all.length}명${isAdmin()&&not.length&&!m.done?` · 미참여: ${not.map(esc).join(', ')}`:''}${!isAdmin()&&!m.done?' · 누가 투표했는지는 경기 종료 후 공개':''}</div>`;
 }
 function vBets(){
   const ms=S.matches.filter(ours).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
