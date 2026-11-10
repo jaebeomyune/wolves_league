@@ -17,7 +17,7 @@ header h1{font-size:18px;margin:0;flex:1}
 header small{color:var(--sub)}
 main{padding:14px 14px 20px;max-width:720px;margin:0 auto}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:#0e2238;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;background:none;border:0;color:var(--sub);padding:10px 0 9px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button{flex:1;min-width:0;background:none;border:0;color:var(--sub);padding:10px 0 9px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
 nav button b{font-size:19px;font-weight:400}
 nav button.on{color:var(--acc)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
@@ -79,7 +79,7 @@ const FB_CONFIG={apiKey:"AIzaSyCaZ2XVZztkgnqly98ua3ul9Utoy26iD3o",authDomain:"wo
 const TEAM_EMAIL='team@wolves-league.app';   // 팀원 공용 계정 (비밀번호 = 팀 비밀번호)
 const CACHE_KEY='wolves_league_cache', ME_KEY='wolves_me';
 const FBV='10.12.2';
-let fb=null, ref=null, pubRef=null, user=null, authReady=false, sync='connecting', loaded=false, unsub=null, pubRoster=null, adminMode=false, draftName='', draftEmail='';
+let fb=null, ref=null, pubRef=null, user=null, authReady=false, sync='connecting', loaded=false, unsub=null, unsubBets=null, BETS=[], pubRoster=null, adminMode=false, draftName='', draftEmail='';
 
 const defaults=()=>({teams:[US],players:ROSTER.map(([no,name])=>({id:uid(),no,name})),matches:[]});
 const valid=s=>s&&Array.isArray(s.players)&&Array.isArray(s.matches)&&Array.isArray(s.teams);
@@ -100,7 +100,13 @@ function save(){
 
 function subscribe(F){
   if(unsub){unsub();unsub=null}
-  if(!user)return;
+  if(unsubBets){unsubBets();unsubBets=null}
+  if(!user){BETS=[];return}
+  unsubBets=F.onSnapshot(F.collection(fb.db,'bets'),snap=>{
+    BETS=snap.docs.map(d=>d.data());
+    if(sheet&&document.activeElement&&/INPUT|SELECT/.test(document.activeElement.tagName))return;
+    render();
+  },err=>console.error(err));
   unsub=F.onSnapshot(ref,{includeMetadataChanges:true},snap=>{
     if(snap.exists()&&valid(snap.data()))S=snap.data();
     else if(!snap.metadata.fromCache&&!loaded)S=defaults();
@@ -118,7 +124,7 @@ async function initFirebase(){
     const app=A.initializeApp(FB_CONFIG);
     let db;try{db=F.initializeFirestore(app,{localCache:F.persistentLocalCache()})}catch(e){db=F.getFirestore(app)}
     const auth=U.getAuth(app);
-    fb={setDoc:F.setDoc,auth,signIn:U.signInWithEmailAndPassword,signOut:U.signOut};
+    fb={setDoc:F.setDoc,doc:F.doc,deleteDoc:F.deleteDoc,db,auth,signIn:U.signInWithEmailAndPassword,signOut:U.signOut};
     ref=F.doc(db,'league','main');pubRef=F.doc(db,'public','roster');
     F.onSnapshot(pubRef,snap=>{const d=snap.exists()&&snap.data();if(d&&Array.isArray(d.players)&&d.players.length){pubRoster=d.players;if(!user)render()}},()=>{});
     U.onAuthStateChanged(auth,u=>{user=u;authReady=true;if(!u){sync='connecting'}subscribe(F);render()});
@@ -196,6 +202,69 @@ function vRoster(){
   ${pl.map(p=>`<tr><td><span class="num">${p.no}</span></td><td class="l">${esc(p.name)}</td><td>${st[p.id].g}</td><td>${st[p.id].a}</td><td><button class="g sm rw" data-a="editPlayer" data-id="${p.id}">수정</button></td></tr>`).join('')}</table>
   <div class="row mt rw"><button class="b" data-a="addPlayer">＋ 선수 추가</button></div></div>`;
 }
+/* ---------- 예측(배팅) ---------- */
+const MK=[['top','최다 득점자'],['first','첫 골 주인공'],['res','경기 결과']];
+const RES={W:'승',D:'무',L:'패'};
+const ours=m=>m.home===US||m.away===US;
+const closeAt=m=>new Date((m.date||'2000-01-01')+'T00:00:00+09:00');      // 경기 당일 0시(한국시간) 마감
+const isOpen=m=>!m.done&&Date.now()<closeAt(m).getTime();
+const betsOf=m=>BETS.filter(b=>b.m===m.id);
+const myBet=m=>BETS.find(b=>b.m===m.id&&b.n===getMe());
+function answers(m){                     // 경기 종료 후 정답
+  const ev=m.ev||[],cnt={};ev.forEach(e=>cnt[e.s]=(cnt[e.s]||0)+1);
+  const mx=Math.max(0,...Object.values(cnt));
+  const s=score(m),my=m.home===US?s.h:s.a,op=m.home===US?s.a:s.h;
+  return {top:mx?Object.keys(cnt).filter(k=>cnt[k]===mx):[],first:ev[0]?[ev[0].s]:[],res:[my>op?'W':my<op?'L':'D']};
+}
+function settle(m){                      // {이름:{pts,hit,try}} — 소수 정답일수록 높은 점수
+  const out={},ans=answers(m),bs=betsOf(m);
+  MK.forEach(([k])=>{
+    const part=bs.filter(b=>b[k]),ok=part.filter(b=>ans[k].includes(b[k]));
+    const pts=ok.length?Math.round(10*part.length/ok.length):0;
+    part.forEach(b=>{const o=out[b.n]=out[b.n]||{pts:0,hit:0,try:0};o.try++;if(ans[k].includes(b[k])){o.hit++;o.pts+=pts}});
+  });
+  return out;
+}
+function betBoard(){
+  const T={};S.matches.filter(m=>m.done&&ours(m)).forEach(m=>Object.entries(settle(m)).forEach(([n,o])=>{const t=T[n]=T[n]||{n,pts:0,hit:0,try:0};t.pts+=o.pts;t.hit+=o.hit;t.try+=o.try}));
+  return Object.values(T).sort((a,b)=>b.pts-a.pts||b.hit-a.hit||a.n.localeCompare(b.n));
+}
+const pickTxt=(k,v)=>!v?'-':k==='res'?RES[v]:pn(v);
+function vBets(){
+  const ms=S.matches.filter(ours).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const open=ms.filter(isOpen),wait=ms.filter(m=>!m.done&&!isOpen(m)),done=ms.filter(m=>m.done).reverse().slice(0,5);
+  const bd=betBoard();let rk=0,pv=null;
+  const mine=m=>{const b=myBet(m);return b?MK.filter(([k])=>b[k]).map(([k,l])=>`<span class="tag">${l}: ${esc(pickTxt(k,b[k]))}</span>`).join(' ')||'<span class="tag">예측 없음</span>':'<span class="tag">아직 예측 안 함</span>'};
+  const opp=m=>esc(m.home===US?m.away:m.home);
+  return `<div class="card"><h2>🎯 예측 가능한 경기</h2>${open.length?open.map(m=>`<div class="ev" data-a="openBet" data-id="${m.id}" style="cursor:pointer;flex-wrap:wrap"><span><b>vs ${opp(m)}</b> <small style="color:var(--sub)">${fds(m.date)} · 참여 ${betsOf(m).length}명</small><div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap">${mine(m)}</div></span><button class="b sm">${myBet(m)?'수정':'예측하기'}</button></div>`).join(''):'<div class="empty">예측할 수 있는 경기가 없습니다.<br><small>관리자가 경기 일정을 등록하면 경기 전날까지 예측할 수 있어요.</small></div>'}</div>
+  ${wait.length?`<div class="card"><h2>⏳ 마감 · 결과 대기</h2>${wait.map(m=>`<div class="ev" data-a="openBet" data-id="${m.id}" style="cursor:pointer"><span><b>vs ${opp(m)}</b> <small style="color:var(--sub)">${fds(m.date)} · 참여 ${betsOf(m).length}명</small></span><button class="g sm">예측 보기</button></div>`).join('')}</div>`:''}
+  <div class="card"><h2>🏅 예측 랭킹</h2>${bd.length?`<table><tr><th class="rk">#</th><th class="l">이름</th><th>적중</th><th>포인트</th></tr>${bd.map((x,i)=>{if(x.pts!==pv){rk=i+1;pv=x.pts}return `<tr class="${x.n===getMe()?'us':''}"><td class="rk">${rk}</td><td class="l">${esc(x.n)}</td><td>${x.hit}/${x.try}</td><td><b>${x.pts}</b></td></tr>`}).join('')}</table>`:'<div class="empty">종료된 경기의 예측 결과가 여기에 쌓입니다.</div>'}
+  <div class="note mt">정답 포인트 = 10 × (그 항목 참여 인원 ÷ 정답자 수). 혼자 맞추면 크게 받아요.</div></div>
+  ${done.length?`<div class="card"><h2>📜 지난 경기 예측 결과</h2>${done.map(m=>`<div class="ev" data-a="openBet" data-id="${m.id}" style="cursor:pointer"><span><b>vs ${opp(m)}</b> <small style="color:var(--sub)">${fds(m.date)} · ${score(m).h}:${score(m).a}</small></span><button class="g sm">결과 보기</button></div>`).join('')}</div>`:''}`;
+}
+function vBetSheet(m){
+  const open=isOpen(m),bs=betsOf(m),b=myBet(m)||{},me=getMe();
+  const pl=[...S.players].sort((a,b)=>a.no-b.no);
+  const cnt=k=>{const c={};bs.forEach(x=>{if(x[k])c[x[k]]=(c[x[k]]||0)+1});return c};
+  const ans=m.done?answers(m):null,st=m.done?settle(m):{};
+  const dist=k=>{const c=cnt(k),e=Object.entries(c).sort((a,b)=>b[1]-a[1]);
+    if(!e.length)return '<div class="note">아직 아무도 고르지 않았어요.</div>';
+    return e.map(([v,n])=>{const who=open?'':` <small style="color:var(--sub)">${bs.filter(x=>x[k]===v).map(x=>esc(x.n)).join(', ')}</small>`;
+      const ok=ans&&ans[k].includes(v);return `<div class="ev"><span>${ok?'✅ ':''}${esc(pickTxt(k,v))} <b>${n}명</b>${who}</span></div>`}).join('')};
+  const sel=(k)=>k==='res'
+    ?`<div class="seg" style="margin:6px 0 0">${[['','안 함'],['W','승'],['D','무'],['L','패']].map(([v,l])=>`<button class="${(b.res||'')===v?'on':''}" data-a="pickRes" data-v="${v}">${l}</button>`).join('')}</div><input type="hidden" id="bres" value="${b.res||''}">`
+    :`<select id="b${k}"><option value="">선택 안함</option>${pl.map(p=>`<option value="${p.id}" ${b[k]===p.id?'selected':''}>#${p.no} ${esc(p.name)}</option>`).join('')}</select>`;
+  return `<div class="sheet" data-a="closeSheet"><div>
+    <div class="row"><h2 style="margin:0;flex:3">🎯 ${esc(m.home)} vs ${esc(m.away)}</h2><button class="g sm" data-a="closeSheet" style="flex:0 0 auto">닫기</button></div>
+    <div class="note" style="margin:4px 0 10px">${m.done?`${fds(m.date)} · `:''}${m.done?`경기 종료 ${score(m).h}:${score(m).a}`:open?`${fds(m.date)} 0시 마감`:`${fds(m.date)} · 예측 마감 · 결과 대기`} · 참여 ${bs.length}명</div>
+    ${open?`${me?'':`<label>내 이름</label><select id="bname"><option value="">이름을 선택하세요</option>${pl.map(p=>`<option>${esc(p.name)}</option>`).join('')}</select>`}
+      ${MK.map(([k,l])=>`<div class="card"><h2>${l}</h2>${sel(k)}<div class="mt">${dist(k)}</div></div>`).join('')}
+      <div class="note">마감 전에는 인원수만 보이고, 마감 후에 누가 무엇을 골랐는지 공개됩니다.</div>
+      <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="saveBet">예측 저장</button></div>`
+    :`${MK.map(([k,l])=>`<div class="card"><h2>${l}${ans?` <small style="color:var(--sub);font-weight:400">· 정답 ${ans[k].length?ans[k].map(v=>esc(pickTxt(k,v))).join(', '):'없음'}</small>`:''}</h2>${dist(k)}</div>`).join('')}
+      ${m.done&&Object.keys(st).length?`<div class="card"><h2>이 경기 포인트</h2><table>${Object.entries(st).sort((a,b)=>b[1].pts-a[1].pts).map(([n,o])=>`<tr><td class="l">${esc(n)}</td><td>${o.hit}/${o.try} 적중</td><td><b>+${o.pts}</b></td></tr>`).join('')}</table></div>`:''}`}
+  </div></div>`;
+}
 function vMore(){
   return `<div class="card"><h2>대경리그 참가팀</h2>
   ${S.teams.map(t=>`<div class="ev"><span>${esc(t)}${t===US?' <span class="tag">우리팀</span>':''}</span>${t===US?'':`<button class="d sm rw" data-a="delTeam" data-t="${esc(t)}">삭제</button>`}</div>`).join('')}
@@ -219,6 +288,7 @@ function vSheet(){
       <div class="row"><h2 style="margin:0;flex:3">${esc(m.home)} vs ${esc(m.away)}</h2><button class="g sm" data-a="closeSheet" style="flex:0 0 auto">닫기</button></div>
       <div style="color:var(--sub);font-size:13px;margin:4px 0 8px">${fds(m.date)} ${m.done?'· 경기 종료':'· 진행/예정'}</div>
       <div class="big"><span>${s.h}</span><span style="color:var(--sub)">:</span><span>${s.a}</span></div>
+      ${mine?`<div class="row" style="margin-bottom:10px"><button class="g" data-a="openBet" data-id="${m.id}">🎯 예측 ${isOpen(m)?'하기':'보기'} (${betsOf(m).length}명 참여)</button></div>`:''}
       ${mine?`
         <div class="card"><h2>${US} 득점 기록</h2>
         ${(m.ev||[]).length?m.ev.map((e,i)=>`<div class="ev"><span>🥅 <b>${esc(pn(e.s))}</b>${e.a?` <small style="color:var(--sub)">어시 ${esc(pn(e.a))}</small>`:''}${e.min?` <small style="color:var(--sub)">· ${esc(e.min)}'</small>`:''}</span><button class="d sm rw" data-a="delEv" data-i="${i}">삭제</button></div>`).join(''):'<div class="empty" style="padding:10px">기록된 골이 없습니다.</div>'}
@@ -239,6 +309,7 @@ function vSheet(){
       <label>원정팀</label><select id="na">${S.teams.map((t,i)=>`<option ${i===1?'selected':''}>${esc(t)}</option>`).join('')}</select>
       <div class="row mt"><button class="g" data-a="closeSheet">취소</button><button class="b" data-a="saveMatch">저장</button></div></div></div>`;
   }
+  if(sheet.type==='bet'){const m=S.matches.find(x=>x.id===sheet.id);if(!m){sheet=null;return''}return vBetSheet(m)}
   if(sheet.type==='player'){
     const p=sheet.id?P(sheet.id):null;
     return `<div class="sheet" data-a="closeSheet"><div><h2>${p?'선수 수정':'선수 추가'}</h2>
@@ -250,7 +321,7 @@ function vSheet(){
 }
 
 /* ---------- render ---------- */
-const TABS=[['standings','🏆','순위'],['matches','📅','일정'],['stats','🥅','기록'],['roster','👥','선수단'],['more','⚙️','설정']];
+const TABS=[['standings','🏆','순위'],['matches','📅','일정'],['stats','🥅','기록'],['bets','🎯','예측'],['roster','👥','선수단'],['more','⚙️','설정']];
 function vLogin(){
   const list=(pubRoster||ROSTER.map(([no,name])=>({no,name}))).slice().sort((a,b)=>a.no-b.no);
   const me=draftName||getMe();
@@ -272,7 +343,7 @@ function render(){
     document.getElementById('app').innerHTML=authReady?vLogin():'<div class="card empty">불러오는 중…</div>';
     document.getElementById('nav').innerHTML='';document.body.classList.add('ro');renderStatus();return;
   }
-  const v=loaded?{standings:vStandings,matches:vMatches,stats:vStats,roster:vRoster,more:vMore}[tab]():'<div class="card empty">기록을 불러오는 중…</div>';
+  const v=loaded?{standings:vStandings,matches:vMatches,stats:vStats,bets:vBets,roster:vRoster,more:vMore}[tab]():'<div class="card empty">기록을 불러오는 중…</div>';
   document.getElementById('app').innerHTML=v+vSheet();
   renderStatus();
   document.getElementById('nav').innerHTML=TABS.map(([k,i,l])=>`<button class="${tab===k?'on':''}" data-a="tab" data-k="${k}"><b>${i}</b>${l}</button>`).join('');
@@ -299,7 +370,7 @@ const A={
   delEv(d){cur().ev.splice(+d.i,1);save()},
   step(d){const m=cur(),k=d.k;m[k]=Math.max(0,(m[k]||0)+ +d.d);save()},
   toggleDone(){const m=cur();m.done=!m.done;save();if(m.done)toast('순위에 반영됐습니다')},
-  delMatch(){if(confirm('이 경기를 삭제할까요?')){S.matches=S.matches.filter(x=>x.id!==sheet.id);save();sheet=null}},
+  delMatch(){if(confirm('이 경기를 삭제할까요? (이 경기의 예측도 함께 삭제됩니다)')){const id=sheet.id;S.matches=S.matches.filter(x=>x.id!==id);save();BETS.filter(b=>b.m===id).forEach(b=>fb&&fb.deleteDoc(fb.doc(fb.db,'bets',b.m+'__'+b.n)).catch(()=>{}));sheet=null}},
   addPlayer(){sheet={type:'player'}},
   editPlayer(d){sheet={type:'player',id:d.id}},
   savePlayer(){
@@ -349,6 +420,19 @@ const A={
   logout(){if(fb&&confirm('로그아웃할까요?')){fb.signOut(fb.auth);sheet=null;tab='standings'}},
   migrate(){const s=legacy();if(s&&confirm(`이 폰의 이전 기록(경기 ${s.matches.length}개)으로 공용 기록을 덮어씁니다.`)){S=s;save();localStorage.setItem(KEY+'_moved','1');toast('공용 기록으로 올렸습니다')}},
   dropLegacy(){localStorage.setItem(KEY+'_moved','1')},
+  openBet(d){sheet={type:'bet',id:d.id}},
+  pickRes(d){document.getElementById('bres').value=d.v;document.querySelectorAll('[data-a=pickRes]').forEach(x=>x.classList.toggle('on',x.dataset.v===d.v));return 'keep'},
+  saveBet(){
+    const m=S.matches.find(x=>x.id===sheet.id);if(!m)return;
+    if(!isOpen(m)){toast('예측이 마감됐습니다');return}
+    let n=getMe();
+    if(!n){n=(document.getElementById('bname')||{}).value||'';if(!n){toast('이름을 선택하세요');return}try{localStorage.setItem(ME_KEY,n)}catch(e){}}
+    const top=document.getElementById('btop').value||null,first=document.getElementById('bfirst').value||null,res=document.getElementById('bres').value||null;
+    if(!top&&!first&&!res){toast('하나 이상 골라주세요');return}
+    fb.setDoc(fb.doc(fb.db,'bets',m.id+'__'+n),{m:m.id,n,top,first,res,at:Date.now()})
+      .then(()=>toast('예측을 저장했습니다')).catch(e=>{console.error(e);toast('저장 실패: '+(e.code||'네트워크 확인'))});
+    sheet=null;
+  },
   install(){if(dip){dip.prompt();dip=null;document.getElementById('ib').style.display='none'}}
 };
 function doLogin(em,pw,ok){
@@ -364,7 +448,7 @@ document.addEventListener('click',e=>{
   if(el.classList.contains('sheet')&&e.target!==el)return;
   const f=A[el.dataset.a];if(!f)return;
   if(MUT.has(el.dataset.a)&&!canEdit()){toast('관리자만 수정할 수 있습니다');return}
-  f(el.dataset);render();
+  if(f(el.dataset)!=='keep')render();
 });
 document.addEventListener('change',e=>{
   if(e.target.id!=='file'||!e.target.files[0])return;
