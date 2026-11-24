@@ -33,6 +33,20 @@
   <title>ON THE ICE</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FFFFFF">
+  <style>
+    /* 아이폰: 웹 페이지 자체가 밀려 스크롤되면 iOS가 화면 맨 위에 흐림 효과를 넣어서 헤더가 흐려짐.
+       페이지는 고정하고 스크롤은 앱 안에서만 되게 함 */
+    html, body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: #FFFFFF;
+    }
+  </style>
 </head>
 <body>
   <!--
