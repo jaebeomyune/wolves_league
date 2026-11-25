@@ -58,10 +58,42 @@
       top: env(safe-area-inset-top, 0px);
       bottom: env(safe-area-inset-bottom, 0px);
     }
+    /* 첫 화면: 앱이 켜지는 동안(엔진·앱 파일 준비) 흰 화면 대신 아이콘과 문구. 앱 첫 화면이 그려지면 지움 */
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #F6F8FD;
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+      color: #404F68;
+      font-size: 14px;
+      letter-spacing: -0.3px;
+      transition: opacity .2s;
+      z-index: 10;
+    }
+    #splash img { width: 64px; height: 64px; border-radius: 18px; margin-bottom: 20px; }
+    #splash .spin {
+      width: 18px; height: 18px; margin-bottom: 12px;
+      border: 2.5px solid #DDE2EC; border-top-color: #4458EB; border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
   <div id="app"></div>
+  <div id="splash"><img src="icons/Icon-192.png?v=3" alt=""><div class="spin"></div>불러오는 중입니다</div>
+  <script>
+    window.addEventListener('flutter-first-frame', () => {
+      const el = document.getElementById('splash');
+      if (!el) return;
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 250);
+    });
+  </script>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
