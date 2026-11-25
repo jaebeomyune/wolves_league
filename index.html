@@ -48,16 +48,20 @@
       overscroll-behavior: none;
       background: #FFFFFF;
     }
-    /* 아이폰 홈 핸들: 웹용 Flutter는 하단 안전 영역을 모르므로, 앱을 그 높이만큼 위로 올림.
-       아래 빈 칸은 html 흰 배경이 채워서 하단 메뉴와 이어져 보임. 다른 기기는 0이라 변화 없음 */
-    body {
+    /* 아이폰 홈 핸들: 웹용 Flutter는 전체 화면 모드면 창 크기를 그대로 써서 하단 안전 영역을 무시함.
+       그래서 앱을 #app 상자 안에 그리고, 상자를 안전 영역만큼 띄움 (flutter_bootstrap.js의 hostElement).
+       아래 빈 칸은 흰 배경이라 하단 메뉴와 이어져 보임. 홈 핸들 없는 기기는 0이라 변화 없음 */
+    #app {
+      position: fixed;
+      left: 0;
+      right: 0;
       top: env(safe-area-inset-top, 0px);
       bottom: env(safe-area-inset-bottom, 0px);
-      height: auto;
     }
   </style>
 </head>
 <body>
+  <div id="app"></div>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader
