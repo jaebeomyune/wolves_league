@@ -19,6 +19,8 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="아마추어 아이스하키 리그 기록과 예측">
+  <!-- viewport-fit=cover: 아이폰 하단 홈 핸들 높이(env(safe-area-inset-bottom))를 받으려면 필요 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -45,6 +47,13 @@
       overflow: hidden;
       overscroll-behavior: none;
       background: #FFFFFF;
+    }
+    /* 아이폰 홈 핸들: 웹용 Flutter는 하단 안전 영역을 모르므로, 앱을 그 높이만큼 위로 올림.
+       아래 빈 칸은 html 흰 배경이 채워서 하단 메뉴와 이어져 보임. 다른 기기는 0이라 변화 없음 */
+    body {
+      top: env(safe-area-inset-top, 0px);
+      bottom: env(safe-area-inset-bottom, 0px);
+      height: auto;
     }
   </style>
 </head>
