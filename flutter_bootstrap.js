@@ -44,7 +44,7 @@ _flutter.buildConfig = {"engineRevision":"89c39edfdfae2949f6806e4a315c0c08522238
 // 앱을 <div id="app"> 안에 그림 (아이폰 홈 핸들 영역을 피하려고, index.html 참고)
 _flutter.loader.load({
   serviceWorkerSettings: {
-    serviceWorkerVersion: "3204654790" /* Flutter's service worker is deprecated and will be removed in a future Flutter release. */,
+    serviceWorkerVersion: "751092223" /* Flutter's service worker is deprecated and will be removed in a future Flutter release. */,
   },
   onEntrypointLoaded: async (engineInitializer) => {
     const appRunner = await engineInitializer.initializeEngine({
