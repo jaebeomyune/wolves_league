@@ -70,6 +70,10 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <!-- 서비스워커: 열 때마다 새 버전 확인 + 엔진·글꼴 저장 (web_overrides/sw.js) -->
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

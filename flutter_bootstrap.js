@@ -42,10 +42,8 @@ _flutter.buildConfig = {"engineRevision":"89c39edfdfae2949f6806e4a315c0c08522238
 
 
 // 앱을 <div id="app"> 안에 그림 (아이폰 홈 핸들 영역을 피하려고, index.html 참고)
+// 플러터 기본 서비스워커는 쓰지 않음 (스스로 등록 해제하면서 우리 sw.js까지 지움). 캐시는 sw.js가 맡음
 _flutter.loader.load({
-  serviceWorkerSettings: {
-    serviceWorkerVersion: "751092223" /* Flutter's service worker is deprecated and will be removed in a future Flutter release. */,
-  },
   onEntrypointLoaded: async (engineInitializer) => {
     const appRunner = await engineInitializer.initializeEngine({
       hostElement: document.querySelector('#app'),
