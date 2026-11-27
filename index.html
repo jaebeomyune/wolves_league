@@ -19,8 +19,8 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="아마추어 아이스하키 리그 기록과 예측">
-  <!-- viewport-fit=cover: 아이폰 하단 홈 핸들 높이(env(safe-area-inset-bottom))를 받으려면 필요 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- viewport-fit=cover: 아이폰 하단 홈 핸들 높이(env(safe-area-inset-bottom))를 받으려면 필요. interactive-widget=resizes-visual: 안드로이드 크롬도 키보드가 페이지 크기를 바꾸지 않고 보이는 영역만 줄임 (아이폰과 같게, 키보드 높이는 lib/kb_web.dart) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-visual">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -87,6 +87,23 @@
   <div id="app"></div>
   <div id="splash"><img src="icons/Icon-192.png?v=3" alt=""><div class="spin"></div>불러오는 중입니다</div>
   <script>
+    // 키보드: 앱을 #app 상자 안에 그리면 플러터가 키보드 높이를 모름 (아래 입력창이 키보드에 가려짐).
+    // 보이는 영역(visualViewport) 아래가 상자 아래보다 얼마나 올라왔는지 재서 앱에 알려 줌 (lib/kb_web.dart가 받아 화면을 줄임)
+    (() => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const fit = () => {
+        const app = document.getElementById('app');
+        if (!app) return;
+        let inset = app.offsetTop + app.offsetHeight - (vv.offsetTop + vv.height);
+        if (inset < 80) inset = 0; // 키보드가 아님 (주소창 등)
+        if (inset > 0 && vv.offsetTop > 0) window.scrollTo(0, 0); // 아이폰이 화면을 위로 밀어 올린 것 되돌림
+        window.__kbInset = inset;
+        if (window.__onKb) window.__onKb(inset);
+      };
+      vv.addEventListener('resize', fit);
+      vv.addEventListener('scroll', fit);
+    })();
     window.addEventListener('flutter-first-frame', () => {
       const el = document.getElementById('splash');
       if (!el) return;
