@@ -119178,7 +119178,7 @@ s=A.b([m,n.$5$onTap(B.ZS,l,s,q,new A.aqY(a)),n.$4(B.ZU,"\uc608\uce21","\uacbd\ua
 if(o.gbZ()){m=o.gn7()?"\uc0c8 \ubb38\uc758\uac00 \uc788\uc2b5\ub2c8\ub2e4":"\uc120\uc218\ub4e4\uc774 \ubcf4\ub0b8 \ubb38\uc758"
 s.push(n.$6$dot$onTap(B.ZM,"\ubb38\uc758\ud568",m,q,o.gn7(),new A.aqZ(a)))}s.push(n.$4(B.ZW,"\uc124\uc815","\ub0b4 \uacc4\uc815, \ube44\ubc00\ubc88\ud638",B.aj8))
 n=A.dC(new A.h5(s,q),B.as,B.a_)
-m=A.b([A.L("\uc81c\uc791\uc790  ON THE ICE",q,q,q,q,q,A.T(q,q,B.E,q,q,q,q,q,p,q,q,13,q,q,B.i,q,q,!0,q,-0.6,q,q,q,q,q,q),q,q,q)],r)
+m=A.b([A.L("ON THE ICE",q,q,q,q,q,A.T(q,q,B.E,q,q,q,q,q,p,q,q,13,q,q,B.i,q,q,!0,q,-0.6,q,q,q,q,q,q),q,q,q)],r)
 if(!o.gbZ()){l=o.gn7()?"\uad00\ub9ac\uc790 \ub2f5\ubcc0\uc774 \uc654\uc2b5\ub2c8\ub2e4":"\uad00\ub9ac\uc790\uc5d0\uac8c \ubb38\uc758\ud558\uae30"
 s=o.gn7()?B.o:B.i
 s=A.T(q,q,o.gn7()?B.c_:B.E,q,q,q,q,q,p,q,q,13,q,q,s,q,q,!0,q,-0.6,q,q,q,q,q,q)
@@ -119187,7 +119187,7 @@ if(o.gn7())l.push(B.afO)
 m.push(A.e9(B.av,new A.af(B.XS,A.aK(l,B.n,B.f,B.aE,0,q,q),q),B.N,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,new A.ar_(a),q,q,q,q,q,q,!1,B.aJ))}m.push(B.al)
 m.push(A.L("Copyright \xa9 2026 ON THE ICE. All rights reserved.",q,q,q,q,q,A.T(q,q,B.I,q,q,q,q,q,p,q,q,12,q,q,B.i,q,q,!0,q,-0.6,q,q,q,q,q,q),q,q,q))
 m.push(B.ca)
-m.push(A.L("\ubc84\uc804 1127.2300",q,q,q,q,q,A.T(q,q,B.bp,q,q,q,q,q,p,q,q,12,q,q,B.i,q,q,!0,q,-0.6,q,q,q,q,q,q),q,q,q))
+m.push(A.L("\ubc84\uc804 1128.0009",q,q,q,q,q,A.T(q,q,B.bp,q,q,q,q,q,p,q,q,12,q,q,B.i,q,q,!0,q,-0.6,q,q,q,q,q,q),q,q,q))
 return A.j_(A.b([n,new A.af(B.XK,A.av(m,B.n,B.f,B.h,0,B.q),q)],r),B.a_)}}
 A.ar0.prototype={
 $6$dot$onTap(a,b,c,d,e,f){var s,r,q=null,p="Pretendard",o=f==null?new A.ar1(this.a,b,d):f,n=A.bA(12)
