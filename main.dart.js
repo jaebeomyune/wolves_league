@@ -119185,7 +119185,7 @@ if(o.gn7())l.push(B.afR)
 m.push(A.e9(B.av,new A.af(B.XV,A.aK(l,B.n,B.f,B.aE,0,q,q),q),B.N,!1,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,new A.aqZ(a),q,q,q,q,q,q,!1,B.aJ))}m.push(B.al)
 m.push(A.L("Copyright \xa9 2026 ON THE ICE. All rights reserved.",q,q,q,q,q,A.T(q,q,B.K,q,q,q,q,q,p,q,q,12,q,q,B.i,q,q,!0,q,-0.6,q,q,q,q,q,q),q,q,q))
 m.push(B.c9)
-m.push(A.L("\ubc84\uc804 1127.2208",q,q,q,q,q,A.T(q,q,B.bw,q,q,q,q,q,p,q,q,12,q,q,B.i,q,q,!0,q,-0.6,q,q,q,q,q,q),q,q,q))
+m.push(A.L("\ubc84\uc804 1127.2215",q,q,q,q,q,A.T(q,q,B.bw,q,q,q,q,q,p,q,q,12,q,q,B.i,q,q,!0,q,-0.6,q,q,q,q,q,q),q,q,q))
 return A.j_(A.b([n,new A.af(B.XN,A.av(m,B.n,B.f,B.h,0,B.q),q)],r),B.a_)}}
 A.ar_.prototype={
 $6$dot$onTap(a,b,c,d,e,f){var s,r,q=null,p="Pretendard",o=f==null?new A.ar0(this.a,b,d):f,n=A.bA(12)
@@ -119374,7 +119374,7 @@ if(!s)B.b.C(m,A.b([new A.zB(r,new A.aRP(a6),a7),B.jF],n))
 s=a6.e
 a=A.b([B.aio],t.P_)
 for(a0=q.length,a1=t.nC,a2=0;a2<q.length;q.length===a0||(0,A.r)(q),++a2){a3=q[a2]
-a.push(new A.ch(a3,a3,a1))}m.push(new A.lP(s,a,new A.aRQ(a6),a7,"\ud300",a7,t.iP))
+a.push(new A.ch(a3,a3,a1))}m.push(new A.lP(s,a,new A.aRQ(a6),"\ud300 \uc120\ud0dd",a7,a7,t.iP))
 m.push(B.jF)
 m.push(new A.Ku(p,new A.aRR(a6),"\uc774\ub984, \ub4f1\ubc88\ud638 \uac80\uc0c9",a7))
 m.push(B.jF)
